@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科技画板</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.7);
+        }
+        canvas {
+            border: 2px solid #00ffcc;
+            border-radius: 10px;
+            background-color: #2a2a2a;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+            margin: 20px 0;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #333333;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+        }
+        .controls label {
+            color: #00ffcc;
+        }
+        .controls input, .controls button {
+            border: 2px solid #00ffcc;
+            border-radius: 5px;
+            padding: 5px;
+            background-color: #1e1e1e;
+            color: #00ffcc;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .controls input[type="color"] {
+            padding: 0;
+            width: 40px;
+            height: 40px;
+        }
+        .controls input[type="range"] {
+            width: 100px;
+        }
+        .controls button:hover {
+            background-color: #00ffcc;
+            color: #1e1e1e;
+        }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .toolbar button {
+            background-color: #444;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .toolbar button.active {
+            background-color: #00ffcc;
+        }
+        .preview {
+            position: absolute;
+            pointer-events: none; /* 使预览方块不干扰鼠标事件 */
+            display: none; /* 默认隐藏 */
+            border: 1px solid #00ffcc;
+            background-color: rgba(0, 255, 204, 0.3);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <h1>科技画板</h1>
+    <div class="toolbar">
+        <button id="penButton" class="active">
+            <i class="fas fa-pencil-alt"></i> 画笔
+        </button>
+        <button id="eraserButton">
+            <i class="fas fa-eraser"></i> 橡皮擦
+        </button>
+    </div>
+    <div class="controls">
+        <label for="colorPicker">颜色:</label>
+        <input type="color" id="colorPicker" value="#00ffcc">
+        <label for="sizePicker">画笔大小:</label>
+        <input type="range" id="sizePicker" min="1" max="50" value="5">
+        <button id="clearButton">清除</button>
+        <button id="undoButton">撤消</button>
+    </div>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div id="preview" class="preview"></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('colorPicker');
+        const sizePicker = document.getElementById('sizePicker');
+        const clearButton = document.getElementById('clearButton');
+        const undoButton = document.getElementById('undoButton');
+        const penButton = document.getElementById('penButton');
+        const eraserButton = document.getElementById('eraserButton');
+        const preview = document.getElementById('preview');
+
+        let painting = false;
+        let lineWidth = 5;
+        let strokeStyle = '#00ffcc';
+        let history = [];
+        let currentTool = 'pen'; // 当前工具
+
+        function startPosition(e) {
+            painting = true;
+            saveState();
+            draw(e);
+        }
+
+        function endPosition() {
+            painting = false;
+            ctx.beginPath(); // 开始新路径
+        }
+
+        function draw(e) {
+            if (!painting) return;
+            ctx.lineWidth = lineWidth; // 线条宽度
+            ctx.lineCap = 'round'; // 线条末端样式
+            ctx.strokeStyle = currentTool === 'eraser' ? '#2a2a2a' : strokeStyle; // 橡皮擦颜色与画布背景相同
+
+            ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        }
+
+        function saveState() {
+            history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        }
+
+        function undo() {
+            if (history.length > 0) {
+                ctx.putImageData(history.pop(), 0, 0);
+            }
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            history = [];
+        }
+
+        function setActiveTool(tool) {
+            currentTool = tool;
+            penButton.classList.remove('active');
+            eraserButton.classList.remove('active');
+            if (tool === 'pen') {
+                penButton.classList.add('active');
+                preview.style.borderColor = '#00ffcc';
+                preview.style.backgroundColor = 'rgba(0, 255, 204, 0.3)';
+            }
+            if (tool === 'eraser') {
+                eraserButton.classList.add('active');
+                preview.style.borderColor = '#2a2a2a';
+                preview.style.backgroundColor = 'rgba(42, 42, 42, 0.3)';
+            }
+            preview.style.display = 'block'; // 显示预览方块
+        }
+
+        // 事件监听
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mousemove', (e) => {
+            if (currentTool === 'pen' || currentTool === 'eraser') {
+                preview.style.left = `${e.clientX - lineWidth / 2}px`;
+                preview.style.top = `${e.clientY - lineWidth / 2}px`;
+                preview.style.width = `${lineWidth}px`;
+                preview.style.height = `${lineWidth}px`;
+            }
+        });
+        colorPicker.addEventListener('input', (e) => strokeStyle = e.target.value);
+        sizePicker.addEventListener('input', (e) => lineWidth = e.target.value);
+        clearButton.addEventListener('click', clearCanvas);
+        undoButton.addEventListener('click', undo);
+        penButton.addEventListener('click', () => setActiveTool('pen'));
+        eraserButton.addEventListener('click', () => setActiveTool('eraser'));
+
+        // 初始化预览方块
+        setActiveTool('pen'); // 默认选择画笔
+    </script>
+</body>
+</html>
