@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科技风2048 游戏</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #0e0e0e; /* 深色背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none; /* 禁用文本选择 */
+        }
+        .game-container {
+            width: 400px;
+            height: 400px;
+            background: #1c1c1c; /* 深色容器 */
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+        }
+        .tile {
+            width: 90px;
+            height: 90px;
+            background: #00ffcc; /* 科技色 */
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            color: #000;
+            position: absolute;
+            transition: background 0.3s;
+        }
+        .score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            color: #00ffcc; /* 科技色 */
+        }
+        #highScore {
+            position: absolute;
+            top: 10px;
+            left: 150px;
+            font-size: 1.5em;
+            color: #00ffcc; /* 科技色 */
+        }
+        #resetButton, #undoButton, #saveButton, #loadButton {
+            position: absolute;
+            bottom: 10px;
+            font-size: 1em;
+            margin: 5px;
+            padding: 10px;
+            background: #00ffcc;
+            border: none;
+            border-radius: 5px;
+            color: #000;
+            cursor: pointer;
+        }
+        #resetButton { left: 10px; }
+        #undoButton { left: 110px; }
+        #saveButton { left: 210px; }
+        #loadButton { left: 310px; }
+    </style>
+</head>
+<body>
+    <div class="score" id="score">得分: 0</div>
+    <div id="highScore">最高得分: 0</div>
+    <button id="resetButton">重置游戏</button>
+    <button id="undoButton">撤回一步</button>
+    <button id="saveButton">保存游戏</button>
+    <button id="loadButton">读取游戏</button>
+    <div class="game-container" id="gameContainer">
+    </div>
+    <script>
+        const container = document.getElementById('gameContainer');
+        const scoreDisplay = document.getElementById('score');
+        const highScoreDisplay = document.getElementById('highScore');
+        let board = Array(4).fill().map(() => Array(4).fill(0));
+        let score = 0;
+        let highScore = localStorage.getItem('highScore') ? parseInt(localStorage.getItem('highScore')) : 0;
+        let previousStates = [];
+
+        function init() {
+            board = Array(4).fill().map(() => Array(4).fill(0));
+            score = 0;
+            addRandomTile();
+            addRandomTile();
+            draw();
+        }
+
+        function addRandomTile() {
+            let emptyTiles = [];
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    if (board[r][c] === 0) {
+                        emptyTiles.push({ r, c });
+                    }
+                }
+            }
+            if (emptyTiles.length > 0) {
+                const { r, c } = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
+                board[r][c] = Math.random() < 0.9 ? 2 : 4;
+            }
+        }
+
+        function draw() {
+            container.innerHTML = '';
+            scoreDisplay.innerText = '得分: ' + score;
+            highScoreDisplay.innerText = '最高得分: ' + highScore;
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    if (board[r][c] !== 0) {
+                        const tile = document.createElement('div');
+                        tile.className = 'tile';
+                        tile.style.left = c * 100 + 'px';
+                        tile.style.top = r * 100 + 'px';
+                        tile.innerText = board[r][c];
+                        tile.style.background = getTileColor(board[r][c]);
+                        container.appendChild(tile);
+                    }
+                }
+            }
+        }
+
+        function getTileColor(value) {
+            switch (value) {
+                case 2: return '#00cc99';
+                case 4: return '#00b3e3';
+                case 8: return '#ffcc00';
+                case 16: return '#ff9900';
+                case 32: return '#ff6600';
+                case 64: return '#ff3300';
+                case 128: return '#ffccff';
+                case 256: return '#cc99ff';
+                case 512: return '#9966ff';
+                case 1024: return '#6633ff';
+                case 2048: return '#3300ff';
+                default: return '#ccc';
+            }
+        }
+
+        function move(direction) {
+            let moved = false;
+            previousStates.push(JSON.parse(JSON.stringify(board))); // 保存当前状态
+            if (direction === 'left') {
+                for (let r = 0; r < 4; r++) {
+                    for (let c = 1; c < 4; c++) {
+                        if (board[r][c] !== 0) {
+                            let targetCol = c;
+                            while (targetCol > 0 && board[r][targetCol - 1] === 0) {
+                                board[r][targetCol - 1] = board[r][targetCol];
+                                board[r][targetCol] = 0;
+                                targetCol--;
+                                moved = true;
+                            }
+                            if (targetCol > 0 && board[r][targetCol - 1] === board[r][targetCol]) {
+                                board[r][targetCol - 1] *= 2;
+                                board[r][targetCol] = 0;
+                                score += board[r][targetCol - 1];
+                                moved = true;
+                            }
+                        }
+                    }
+                }
+            } else if (direction === 'right') {
+                for (let r = 0; r < 4; r++) {
+                    for (let c = 2; c >= 0; c--) {
+                        if (board[r][c] !== 0) {
+                            let targetCol = c;
+                            while (targetCol < 3 && board[r][targetCol + 1] === 0) {
+                                board[r][targetCol + 1] = board[r][targetCol];
+                                board[r][targetCol] = 0;
+                                targetCol++;
+                                moved = true;
+                            }
+                            if (targetCol < 3 && board[r][targetCol + 1] === board[r][targetCol]) {
+                                board[r][targetCol + 1] *= 2;
+                                board[r][targetCol] = 0;
+                                score += board[r][targetCol + 1];
+                                moved = true;
+                            }
+                        }
+                    }
+                }
+            } else if (direction === 'up') {
+                for (let c = 0; c < 4; c++) {
+                    for (let r = 1; r < 4; r++) {
+                        if (board[r][c] !== 0) {
+                            let targetRow = r;
+                            while (targetRow > 0 && board[targetRow - 1][c] === 0) {
+                                board[targetRow - 1][c] = board[targetRow][c];
+                                board[targetRow][c] = 0;
+                                targetRow--;
+                                moved = true;
+                            }
+                            if (targetRow > 0 && board[targetRow - 1][c] === board[targetRow][c]) {
+                                board[targetRow - 1][c] *= 2;
+                                board[targetRow][c] = 0;
+                                score += board[targetRow - 1][c];
+                                moved = true;
+                            }
+                        }
+                    }
+                }
+            } else if (direction === 'down') {
+                for (let c = 0; c < 4; c++) {
+                    for (let r = 2; r >= 0; r--) {
+                        if (board[r][c] !== 0) {
+                            let targetRow = r;
+                            while (targetRow < 3 && board[targetRow + 1][c] === 0) {
+                                board[targetRow + 1][c] = board[targetRow][c];
+                                board[targetRow][c] = 0;
+                                targetRow++;
+                                moved = true;
+                            }
+                            if (targetRow < 3 && board[targetRow + 1][c] === board[targetRow][c]) {
+                                board[targetRow + 1][c] *= 2;
+                                board[targetRow][c] = 0;
+                                score += board[targetRow + 1][c];
+                                moved = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (moved) {
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('highScore', highScore);
+                }
+                addRandomTile();
+                draw();
+            }
+        }
+
+        function undo() {
+            if (previousStates.length > 0) {
+                board = previousStates.pop(); // 撤回到上一个状态
+                draw();
+            }
+        }
+
+        function saveGame() {
+            const gameState = {
+                board: board,
+                score: score,
+                highScore: highScore
+            };
+            localStorage.setItem('gameState', JSON.stringify(gameState));
+            alert('游戏已保存！');
+        }
+
+        function loadGame() {
+            const gameState = JSON.parse(localStorage.getItem('gameState'));
+            if (gameState) {
+                board = gameState.board;
+                score = gameState.score;
+                highScore = gameState.highScore;
+                draw();
+                alert('游戏已加载！');
+            } else {
+                alert('没有保存的游戏！');
+            }
+        }
+
+        document.getElementById('resetButton').addEventListener('click', init);
+        document.getElementById('undoButton').addEventListener('click', undo);
+        document.getElementById('saveButton').addEventListener('click', saveGame);
+        document.getElementById('loadButton').addEventListener('click', loadGame);
+
+        document.addEventListener('keydown', (event) => {
+            switch (event.code) {
+                case 'ArrowLeft': move('left'); break;
+                case 'ArrowRight': move('right'); break;
+                case 'ArrowUp': move('up'); break;
+                case 'ArrowDown': move('down'); break;
+            }
+        });
+
+        // 鼠标拖拽操作
+        let startX, startY, endX, endY;
+        container.addEventListener('mousedown', (event) => {
+            startX = event.clientX;
+            startY = event.clientY;
+        });
+
+        container.addEventListener('mouseup', (event) => {
+            endX = event.clientX;
+            endY = event.clientY;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const deltaX = endX - startX;
+            const deltaY = endY - startY;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 0) {
+                    move('right');
+                } else {
+                    move('left');
+                }
+            } else {
+                if (deltaY > 0) {
+                    move('down');
+                } else {
+                    move('up');
+                }
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
