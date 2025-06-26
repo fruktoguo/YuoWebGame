@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高级科学计算器</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧮</text></svg>" type="image/svg+xml">
+    <script type="module" src="js/app.js"></script>
+</head>
+<body>
+    <!-- 浏览器兼容性警告，只在需要时显示 -->
+    <div id="browserWarning" class="browser-warning" style="display: none;"></div>
+    
+    <div class="calculator-container">
+        <!-- 常量定义面板 -->
+        <div class="constants-panel">
+            <div class="constants-header">
+                <h3>常量定义</h3>
+                <button id="clearConstants" class="clear-constants-btn" title="清除所有已定义的常量">清除</button>
+            </div>
+            <div class="constants-input-container">
+                <input type="text" id="constantName" placeholder="名称" class="constant-input" title="常量名称（如pi, weight等）">
+                <span class="equals-sign">=</span>
+                <input type="text" id="constantValue" placeholder="表达式/值" class="constant-input" title="常量的值或表达式">
+                <button id="addConstant" class="add-constant-btn" title="添加新常量">添加</button>
+            </div>
+            <div class="constants-list" id="constantsList">
+                <!-- 常量列表将在这里动态生成 -->
+            </div>
+        </div>
+        
+        <div class="calculator">
+            <div class="display">
+                <div class="result-container">
+                    <textarea class="current-input" id="currentInput" title="计算输入和结果" spellcheck="false" style="overflow: hidden; display: block;">0</textarea>
+                    <button id="copyBtn" class="copy-btn" title="复制结果">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="errorDisplay" class="error-display"></div>
+            </div>
+            
+            <div class="calculator-grid">
+                <div class="buttons">
+                    <div class="button-row">
+                        <button class="btn function" data-action="clear" title="清除所有内容">AC</button>
+                        <button class="btn function" data-action="delete" title="删除一个字符">⌫</button>
+                        <button class="btn function" data-action="percent" title="百分比：x% = x/100">%</button>
+                        <button class="btn operator" data-action="divide" title="除法">÷</button>
+                    </div>
+                    <div class="button-row">
+                        <button class="btn number" data-value="7" title="数字7">7</button>
+                        <button class="btn number" data-value="8" title="数字8">8</button>
+                        <button class="btn number" data-value="9" title="数字9">9</button>
+                        <button class="btn operator" data-action="multiply" title="乘法">×</button>
+                    </div>
+                    <div class="button-row">
+                        <button class="btn number" data-value="4" title="数字4">4</button>
+                        <button class="btn number" data-value="5" title="数字5">5</button>
+                        <button class="btn number" data-value="6" title="数字6">6</button>
+                        <button class="btn operator" data-action="subtract" title="减法">−</button>
+                    </div>
+                    <div class="button-row">
+                        <button class="btn number" data-value="1" title="数字1">1</button>
+                        <button class="btn number" data-value="2" title="数字2">2</button>
+                        <button class="btn number" data-value="3" title="数字3">3</button>
+                        <button class="btn operator" data-action="add" title="加法">+</button>
+                    </div>
+                    <div class="button-row">
+                        <button class="btn number" data-value="0" title="数字0">0</button>
+                        <button class="btn number" data-value="." title="小数点">.</button>
+                        <button class="btn function" data-action="toggle-sign" title="正负号切换">±</button>
+                        <button class="btn equals" title="计算结果">=</button>
+                    </div>
+                </div>
+                
+                <div class="scientific-buttons">
+                    <div class="row">
+                        <button class="btn function" data-value="(" title="左括号">(</button>
+                        <button class="btn function" data-value=")" title="右括号">)</button>
+                        <button class="btn function" data-value="[" title="左方括号">[</button>
+                        <button class="btn function" data-value="]" title="右方括号">]</button>
+                    </div>
+                    <div class="row">
+                        <button class="btn function" data-action="memory-add" title="将当前值添加到内存">M+</button>
+                        <button class="btn function" data-action="memory-subtract" title="从内存中减去当前值">M-</button>
+                        <button class="btn function" data-action="memory-recall" title="调用内存中的值">MR</button>
+                        <button class="btn function" data-action="memory-clear" title="清除内存">MC</button>
+                    </div>
+                    <div class="row">
+                        <button class="btn function" data-action="sin" title="正弦函数">sin</button>
+                        <button class="btn function" data-action="cos" title="余弦函数">cos</button>
+                        <button class="btn function" data-action="tan" title="正切函数">tan</button>
+                        <button class="btn function" data-action="pi" title="圆周率π = 3.14159...">π</button>
+                    </div>
+                    <div class="row">
+                        <button class="btn function" data-action="asin" title="反正弦函数">sin⁻¹</button>
+                        <button class="btn function" data-action="acos" title="反余弦函数">cos⁻¹</button>
+                        <button class="btn function" data-action="atan" title="反正切函数">tan⁻¹</button>
+                        <button class="btn function" data-action="e" title="自然对数的底 e = 2.71828...">e</button>
+                    </div>
+                    <div class="row">
+                        <button class="btn function" data-action="square" title="平方：x²">x²</button>
+                        <button class="btn function" data-action="cube" title="立方：x³">x³</button>
+                        <button class="btn function" data-action="sqrt" title="平方根：√x">√</button>
+                        <button class="btn function" data-action="exp" title="科学计数法：1.23e5 = 123000">EXP</button>
+                    </div>
+                    <div class="row">
+                        <button class="btn function" data-action="log" title="常用对数：以10为底的对数">log</button>
+                        <button class="btn function" data-action="ln" title="自然对数：以e为底的对数">ln</button>
+                        <button class="btn function" data-action="powten" title="10的幂：10^x">10ˣ</button>
+                        <button class="btn function" data-action="cbrt" title="立方根：∛x">∛x</button>
+                    </div>
+                    <div class="row">
+                        <button class="btn function" data-action="factorial" title="阶乘：n! = n×(n-1)×...×2×1">x!</button>
+                        <button class="btn function" data-action="power" title="乘方：x^y">xʸ</button>
+                        <button class="btn function" data-action="abs" title="绝对值：|x|">|x|</button>
+                        <button class="btn function" data-action="rand" title="生成0到1之间的随机数">RND</button>
+                    </div>
+                    <div class="row">
+                        <button class="btn function" data-action="mod" title="取余：x mod y">mod</button>
+                        <button class="btn function" data-action="floor" title="向下取整">⌊x⌋</button>
+                        <button class="btn function" data-action="ceil" title="向上取整">⌈x⌉</button>
+                        <button class="btn function" data-action="round" title="四舍五入">round</button>
+                    </div>
+                    <div class="row">
+                        <button class="btn function" data-action="gcd" title="最大公约数">gcd</button>
+                        <button class="btn function" data-action="lcm" title="最小公倍数">lcm</button>
+                        <button class="btn function" data-action="perm" title="排列数">nPr</button>
+                        <button class="btn function" data-action="comb" title="组合数">nCr</button>
+                    </div>
+                    <div class="row angle-mode-row">
+                        <button class="btn function angle-mode-btn active" data-action="set-angle-mode" data-mode="DEG" title="角度模式：以度为单位(0-360°)">DEG</button>
+                        <button class="btn function angle-mode-btn" data-action="set-angle-mode" data-mode="RAD" title="弧度模式：以弧度为单位(0-2π)">RAD</button>
+                        <button class="btn function angle-mode-btn" data-action="set-angle-mode" data-mode="GRAD" title="百分度模式：以百分度为单位(0-400)">GRAD</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3 class="settings-title">计算器设置</h3>
+                <div class="settings-content">
+                    <div class="setting-item">
+                        <label for="decimalPlaces" title="设置计算结果小数点后的位数">小数位数:</label>
+                        <input type="number" id="decimalPlaces" min="0" max="15" value="10" title="设置小数点后显示几位数字">
+                    </div>
+                    <div class="setting-item">
+                        <label for="maxHistoryItems" title="设置保存的历史记录数量">历史记录数量:</label>
+                        <input type="number" id="maxHistoryItems" min="1" max="100" value="50" title="设置最多保存多少条历史记录">
+                    </div>
+                    <div class="setting-item">
+                        <label for="scientificNotation" title="大数字使用科学计数法显示">使用科学计数法:</label>
+                        <input type="checkbox" id="scientificNotation" checked title="大数字使用科学计数法显示，如1.23e5">
+                    </div>
+                    <div class="setting-item">
+                        <label for="showTimestamps" title="在历史记录中显示计算时间">显示时间戳:</label>
+                        <input type="checkbox" id="showTimestamps" checked title="在历史记录中显示计算时间">
+                    </div>
+                    <div class="setting-buttons">
+                        <button id="clearData" class="danger-btn" title="清除所有历史记录和表达式">清除所有数据</button>
+                        <button id="undoClearData" class="secondary-btn" disabled title="恢复刚刚清除的数据">恢复数据</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="history-panel">
+            <div class="history-header">
+                <h3>计算历史</h3>
+                <button id="clearHistory" class="clear-history-btn" title="清除所有历史记录">清除</button>
+            </div>
+            <div class="history" id="history"></div>
+        </div>
+    </div>
+</body>
+</html> 

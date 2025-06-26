@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生命游戏预设图形</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .preset-container {
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .preset-item {
+            position: relative;
+            cursor: grab;
+        }
+
+        .preset-item:active {
+            cursor: grabbing;
+        }
+
+        .preset-item.dragging {
+            opacity: 0.5;
+        }
+
+        .preset-clone {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            transform: translate(-50%, -50%);
+        }
+
+        .preset-description {
+            display: none;
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            z-index: 100;
+        }
+
+        .preset-item:hover .preset-description {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="preset-container">
+        <h3>经典图形</h3>
+        <div class="preset-grid">
+            <div class="preset-item" data-pattern="glider" draggable="true">
+                <canvas class="preset-canvas"></canvas>
+                <span>滑翔机</span>
+                <div class="preset-description">会在画布上移动的图形</div>
+            </div>
+            <div class="preset-item" data-pattern="blinker" draggable="true">
+                <canvas class="preset-canvas"></canvas>
+                <span>闪烁者</span>
+                <div class="preset-description">两种状态间循环的简单图形</div>
+            </div>
+            <div class="preset-item" data-pattern="block" draggable="true">
+                <canvas class="preset-canvas"></canvas>
+                <span>方块</span>
+                <div class="preset-description">最简单的静态图形</div>
+            </div>
+            <div class="preset-item" data-pattern="beehive" draggable="true">
+                <canvas class="preset-canvas"></canvas>
+                <span>蜂巢</span>
+                <div class="preset-description">稳定的六边形结构</div>
+            </div>
+            <div class="preset-item" data-pattern="pulsar" draggable="true">
+                <canvas class="preset-canvas"></canvas>
+                <span>脉冲星</span>
+                <div class="preset-description">周期为3的大型震荡器</div>
+            </div>
+            <div class="preset-item" data-pattern="pentadecathlon" draggable="true">
+                <canvas class="preset-canvas"></canvas>
+                <span>十五步震荡器</span>
+                <div class="preset-description">周期为15的复杂震荡器</div>
+            </div>
+        </div>
+    </div>
+    <script src="presets.js"></script>
+</body>
+</html> 

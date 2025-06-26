@@ -1,0 +1,564 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #0ff;
+    --primary-glow: rgba(0, 255, 255, 0.3);
+    --text-color: #fff;
+    --bg-color: #000;
+    --accent-color: #ff00ff;
+    --accent-glow: rgba(255, 0, 255, 0.3);
+}
+
+body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+    perspective: 1000px;
+}
+
+#matrixCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: black;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 50px;
+    position: relative;
+    animation: headerFloat 6s ease-in-out infinite;
+}
+
+@keyframes headerFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.neon-title {
+    font-size: 3.5em;
+    color: var(--text-color);
+    text-shadow: 
+        0 0 5px var(--text-color),
+        0 0 10px var(--text-color),
+        0 0 20px var(--primary-color),
+        0 0 30px var(--primary-color),
+        0 0 40px var(--primary-color);
+    animation: neon 1.5s ease-in-out infinite alternate;
+    margin-bottom: 20px;
+    position: relative;
+    letter-spacing: 2px;
+    overflow: hidden;
+}
+
+.neon-title::before {
+    content: attr(data-text);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: linear-gradient(45deg, 
+        transparent 45%, 
+        var(--primary-color) 50%, 
+        transparent 55%
+    );
+    background-size: 200% 100%;
+    background-position: 100% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: glitchText 4s infinite;
+}
+
+@keyframes glitchText {
+    0% { background-position: 100% 0; }
+    80% { background-position: 100% 0; }
+    85% { background-position: 0 0; }
+    95% { background-position: 0 0; }
+    100% { background-position: 100% 0; }
+}
+
+@keyframes neonPulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 0.4; }
+}
+
+@keyframes neon {
+    from {
+        text-shadow: 
+            0 0 5px var(--text-color),
+            0 0 10px var(--text-color),
+            0 0 20px var(--primary-color),
+            0 0 30px var(--primary-color),
+            0 0 40px var(--primary-color);
+    }
+    to {
+        text-shadow: 
+            0 0 2.5px var(--text-color),
+            0 0 5px var(--text-color),
+            0 0 10px var(--primary-color),
+            0 0 15px var(--primary-color),
+            0 0 20px var(--primary-color);
+    }
+}
+
+.subtitle {
+    color: var(--primary-color);
+    font-size: 1.2em;
+    text-shadow: 0 0 10px var(--primary-color);
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.subtitle:hover {
+    opacity: 1;
+}
+
+.app-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+    perspective: 1000px;
+}
+
+.app-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 20px var(--primary-glow);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+.app-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at var(--mouse-x) var(--mouse-y), 
+        var(--primary-glow) 0%,
+        transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.app-card:hover {
+    transform: translateY(-5px) scale(1.02) rotateX(5deg);
+    box-shadow: 0 0 30px var(--primary-glow);
+}
+
+.app-card:hover::before {
+    opacity: 1;
+}
+
+.app-image {
+    width: 100%;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    border-bottom: 1px solid var(--primary-glow);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.app-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    transform: skewX(-25deg);
+    transition: 0.5s;
+}
+
+.app-card:hover .app-image::after {
+    animation: shine 1s;
+}
+
+@keyframes shine {
+    100% {
+        left: 150%;
+    }
+}
+
+.app-content {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.app-title {
+    font-size: 1.5em;
+    color: var(--text-color);
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px var(--primary-glow);
+    position: relative;
+    display: inline-block;
+}
+
+.app-title::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+.app-card:hover .app-title::after {
+    width: 100%;
+}
+
+.app-description {
+    color: #ccc;
+    margin-bottom: 15px;
+    min-height: 3.2em;
+    transition: color 0.3s ease;
+}
+
+.app-card:hover .app-description {
+    color: var(--text-color);
+}
+
+.app-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(0, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 15px;
+    font-size: 0.9em;
+    color: var(--primary-color);
+    margin-right: 8px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.app-tag:hover {
+    background: rgba(0, 255, 255, 0.2);
+    box-shadow: 0 0 10px var(--primary-glow);
+    transform: translateY(-2px);
+}
+
+.app-tag::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: var(--primary-glow);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.app-tag:hover::before {
+    width: 150%;
+    height: 150%;
+    opacity: 0;
+}
+
+.app-tag::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        var(--primary-glow),
+        transparent
+    );
+    transform: rotate(45deg);
+    animation: tagShine 3s infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.app-tag:hover::after {
+    opacity: 1;
+}
+
+@keyframes tagShine {
+    0% { transform: rotate(45deg) translateX(-100%); }
+    100% { transform: rotate(45deg) translateX(100%); }
+}
+
+footer {
+    text-align: center;
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid var(--primary-glow);
+    color: var(--primary-color);
+    text-shadow: 0 0 10px var(--primary-glow);
+    position: relative;
+    overflow: hidden;
+}
+
+footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--primary-color),
+        transparent
+    );
+    animation: borderFlow 4s linear infinite;
+}
+
+@keyframes borderFlow {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+footer::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--primary-color),
+        var(--accent-color),
+        var(--primary-color),
+        transparent
+    );
+    animation: footerGlow 4s linear infinite;
+    opacity: 0.5;
+}
+
+@keyframes footerGlow {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.cyber-corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--primary-color);
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+header:hover .cyber-corner {
+    width: 30px;
+    height: 30px;
+    opacity: 0.8;
+}
+
+.cyber-corner.top-left {
+    top: 0;
+    left: 0;
+    border-right: none;
+    border-bottom: none;
+}
+
+.cyber-corner.top-right {
+    top: 0;
+    right: 0;
+    border-left: none;
+    border-bottom: none;
+}
+
+.cyber-corner.bottom-left {
+    bottom: 0;
+    left: 0;
+    border-right: none;
+    border-top: none;
+}
+
+.cyber-corner.bottom-right {
+    bottom: 0;
+    right: 0;
+    border-left: none;
+    border-top: none;
+}
+
+/* 添加鼠标跟随效果 */
+.cursor-dot {
+    width: 5px;
+    height: 5px;
+    background-color: var(--primary-color);
+    position: fixed;
+    pointer-events: none;
+    border-radius: 50%;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    will-change: transform;
+    transition: transform 0.1s ease;
+}
+
+.cursor-outline {
+    width: 30px;
+    height: 30px;
+    border: 2px solid var(--primary-color);
+    position: fixed;
+    pointer-events: none;
+    border-radius: 50%;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    will-change: transform;
+    mix-blend-mode: difference;
+    transition: transform 0.15s ease;
+}
+
+/* 添加能量波纹效果 */
+.energy-ripple {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.app-card:hover .energy-ripple::before,
+.app-card:hover .energy-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    background: radial-gradient(circle at center, 
+        var(--primary-color) 0%,
+        transparent 60%);
+    transform: translate(-50%, -50%);
+    animation: rippleEffect 2s ease-out infinite;
+    opacity: 0;
+}
+
+.app-card:hover .energy-ripple::after {
+    animation-delay: 1s;
+}
+
+@keyframes rippleEffect {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 0.5;
+    }
+    100% {
+        width: 200%;
+        height: 200%;
+        opacity: 0;
+    }
+}
+
+/* 卡片能量边框效果 */
+.app-card::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 14px;
+    padding: 2px;
+    background: linear-gradient(
+        45deg,
+        var(--primary-color),
+        var(--accent-color),
+        var(--primary-color)
+    );
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.app-card:hover::after {
+    opacity: 1;
+    animation: borderRotate 4s linear infinite;
+}
+
+@keyframes borderRotate {
+    from { background-position: 0% 0%; }
+    to { background-position: 200% 0%; }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .neon-title {
+        font-size: 2.5em;
+    }
+    
+    .app-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cursor-dot,
+    .cursor-outline {
+        display: none;
+    }
+    
+    .energy-ripple,
+    .app-card::after {
+        display: none;
+    }
+} 

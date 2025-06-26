@@ -1,0 +1,141 @@
+/* 角色页面样式 */
+.character-stats {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.stats-header {
+    font-size: 24px;
+    font-weight: bold;
+    color: #60a5fa;
+    margin-bottom: 20px;
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #334155;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-item {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 2px solid #475569;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fbbf24;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* 属性点分配 */
+.attribute-points {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid #334155;
+}
+
+.points-header {
+    font-size: 18px;
+    font-weight: bold;
+    color: #60a5fa;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.points-allocation {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.allocation-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: #374151;
+    border-radius: 8px;
+    border: 1px solid #4b5563;
+}
+
+.allocation-item span {
+    font-size: 14px;
+    color: #d1d5db;
+    font-weight: 500;
+}
+
+.point-btn {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.point-btn:hover {
+    background: linear-gradient(135deg, #047857 0%, #059669 100%);
+    transform: scale(1.1);
+}
+
+.point-btn:active {
+    transform: scale(0.95);
+}
+
+.point-btn:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 属性详情工具提示 */
+.stat-item[data-tooltip] {
+    cursor: help;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .allocation-item {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+    
+    .point-btn {
+        width: 40px;
+        height: 40px;
+    }
+} 

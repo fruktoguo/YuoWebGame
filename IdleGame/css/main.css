@@ -1,0 +1,265 @@
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #ffffff;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* 游戏容器 */
+.game-container {
+    display: flex;
+    height: 100vh;
+    background: #1a1a2e;
+}
+
+/* 左侧导航栏 */
+.sidebar {
+    width: 200px;
+    background: linear-gradient(180deg, #16213e 0%, #0f172a 100%);
+    border-right: 2px solid #334155;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    position: relative;
+}
+
+.nav-item:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-left-color: #3b82f6;
+}
+
+.nav-item.active {
+    background: rgba(59, 130, 246, 0.2);
+    border-left-color: #3b82f6;
+    color: #60a5fa;
+}
+
+.nav-icon {
+    font-size: 18px;
+    margin-right: 12px;
+    width: 24px;
+    text-align: center;
+}
+
+.nav-text {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.notification-dot {
+    position: absolute;
+    right: 15px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+}
+
+/* 主内容区域 */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #0f172a;
+}
+
+/* 顶部资源栏 */
+.resource-bar {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background: linear-gradient(90deg, #1e293b 0%, #334155 100%);
+    border-bottom: 2px solid #475569;
+    gap: 30px;
+}
+
+.resource-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.resource-icon {
+    font-size: 20px;
+}
+
+.resource-value {
+    color: #fbbf24;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* 游戏布局 - 左右分栏 */
+.game-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* 左侧面板 */
+.left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 右侧面板 */
+.right-panel {
+    width: 50%;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border-left: 2px solid #334155;
+    overflow-y: auto;
+}
+
+/* 页面容器 */
+.page-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.page.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.hp-fill-small {
+    height: 100%;
+    background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+    transition: width 0.3s ease;
+}
+
+.hp-text-small {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.enemy-level-small {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+/* 工具提示 */
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    max-width: 250px;
+    border: 1px solid #374151;
+}
+
+.tooltip.show {
+    opacity: 1;
+}
+
+/* 占位符页面 */
+.coming-soon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 24px;
+    color: #6b7280;
+    text-align: center;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+    .character-panel {
+        width: 250px;
+    }
+    
+    .sidebar {
+        width: 180px;
+    }
+}
+
+@media (max-width: 900px) {
+    .game-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: 60px;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 0;
+    }
+    
+    .nav-item {
+        min-width: 120px;
+        justify-content: center;
+        padding: 15px 10px;
+    }
+    
+    .nav-text {
+        display: none;
+    }
+    
+    .character-panel {
+        width: 100%;
+        height: 150px;
+        flex-direction: row;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .character-info {
+        text-align: left;
+    }
+    
+    .character-avatar img {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .quick-skills {
+        flex-direction: row;
+    }
+    
+    .action-buttons {
+        flex-direction: row;
+    }
+} 

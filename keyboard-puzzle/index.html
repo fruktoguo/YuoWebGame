@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>键盘华容道 - YuoHira的Web应用集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-color: #f8f9fa;
+            --primary-color: #007bff;
+            --secondary-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --text-color: #343a40;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
+            --white: #ffffff;
+            --light-gray: #f8f9fa;
+            --dark-gray: #495057;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .game-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--white);
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+        
+        .nav-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: var(--primary-color);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: var(--light-gray);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .nav-link:hover {
+            background: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+        
+        h1 {
+            text-align: center;
+            color: var(--text-color);
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        
+        .info-panel {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .info-item {
+            padding: 15px 25px;
+            background: var(--light-gray);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            font-size: 16px;
+            font-weight: 500;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .keyboard-container {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .main-keyboard {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .right-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .keyboard-row {
+            display: flex;
+            margin-bottom: 8px;
+            gap: 6px;
+        }
+        
+        .function-row {
+            margin-bottom: 20px;
+        }
+        
+        .key {
+            height: 40px;
+            margin: 2px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--white);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            text-align: center;
+            border: 2px solid var(--border-color);
+        }
+        
+        .key:hover:not(.empty) {
+            border-color: var(--primary-color);
+            background: #f8f9ff;
+            transform: translateY(-1px);
+        }
+        
+        .key.movable:hover {
+            border-color: var(--info-color);
+            background: #e7f7ff;
+            transform: translateY(-2px);
+        }
+        
+        .key:active:not(.empty) {
+            transform: translateY(0);
+            background: #e6f3ff;
+        }
+        
+        .key.empty {
+            background: #ffeaea;
+            border-color: var(--danger-color);
+            border-width: 3px;
+            border-style: dashed;
+            cursor: default;
+        }
+        
+        .key.correct {
+            background: #d4edda;
+            border-color: var(--secondary-color);
+            color: #155724;
+            font-weight: 600;
+        }
+        
+        /* 特殊按键尺寸 */
+        .key-esc { width: 50px; }
+        .key-backspace { width: 70px; }
+        .key-tab { width: 60px; }
+        .key-caps { width: 75px; }
+        .key-enter { width: 90px; }
+        .key-shift-left { width: 90px; }
+        .key-shift-right { width: 110px; }
+        .key-ctrl { width: 55px; }
+        .key-alt { width: 55px; }
+        .key-space { width: 280px; }
+        .key-fn { width: 45px; }
+        
+        /* 小键盘行 */
+        .numpad-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        
+        .numpad .key {
+            width: 45px;
+            height: 40px;
+        }
+        
+        .key-numpad-plus {
+            height: 88px;
+        }
+        
+        .key-numpad-enter {
+            height: 88px;
+        }
+        
+        .key-numpad-0 {
+            width: 96px;
+        }
+        
+        /* 方向键 */
+        .arrow-section {
+            margin-top: 12px;
+        }
+        
+        .arrow-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        
+        .arrow-row .key {
+            width: 45px;
+        }
+        
+        .arrow-row.center {
+            padding-left: 45px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            font-size: 14px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--white);
+            color: var(--primary-color);
+            font-weight: 500;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background: var(--primary-color);
+            color: var(--white);
+            transform: translateY(-1px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .win-message {
+            text-align: center;
+            font-size: 24px;
+            color: var(--secondary-color);
+            margin: 20px 0;
+            font-weight: 600;
+            padding: 20px;
+            background: #d4edda;
+            border: 2px solid var(--secondary-color);
+            border-radius: 12px;
+        }
+        
+        .game-rules {
+            padding: 20px;
+            background: #f8f9ff;
+            border: 1px solid #b8daff;
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-color);
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .game-rules strong {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .keyboard-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                padding: 20px;
+            }
+            
+            .info-panel {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+            
+            button {
+                width: 200px;
+            }
+
+            .key {
+                height: 35px;
+                min-width: 35px;
+                font-size: 11px;
+            }
+
+            .key-space {
+                width: 200px;
+            }
+            
+            .numpad .key {
+                width: 40px;
+                height: 35px;
+            }
+            
+            .key-numpad-0 {
+                width: 86px;
+            }
+            
+            .arrow-row .key {
+                width: 40px;
+            }
+        }
+
+        /* 添加一些微动效果 */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .key.empty {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* 按键类型颜色区分 */
+        .key[data-type="function"] {
+            background: #fff3cd;
+            border-color: var(--warning-color);
+        }
+
+        .key[data-type="number"] {
+            background: #d1ecf1;
+            border-color: var(--info-color);
+        }
+
+        .key[data-type="letter"] {
+            background: #f8f9fa;
+            border-color: var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <a href="../index.html" class="nav-link">← 返回主页</a>
+        <h1>键盘华容道</h1>
+        
+        <div class="info-panel">
+            <div class="info-item">
+                步数: <span id="steps">0</span>
+            </div>
+            <div class="info-item">
+                时间: <span id="time">00:00</span>
+            </div>
+        </div>
+        
+        <div class="keyboard-container">
+            <div class="main-keyboard">
+                <!-- 功能键行 -->
+                <div class="keyboard-row function-row" id="function-row"></div>
+                
+                <!-- 数字行 -->
+                <div class="keyboard-row" id="number-row"></div>
+                
+                <!-- QWERTY行 -->
+                <div class="keyboard-row" id="qwerty-row"></div>
+                
+                <!-- ASDF行 -->
+                <div class="keyboard-row" id="asdf-row"></div>
+                
+                <!-- ZXCV行 -->
+                <div class="keyboard-row" id="zxcv-row"></div>
+                
+                <!-- 底部行 -->
+                <div class="keyboard-row" id="bottom-row"></div>
+            </div>
+            
+            <div class="right-section">
+                <!-- 右上功能键 -->
+                <div class="keyboard-row" id="right-function"></div>
+                
+                <!-- 小键盘 -->
+                <div class="numpad">
+                    <div class="numpad-row" id="numpad-row-1"></div>
+                    <div class="numpad-row" id="numpad-row-2"></div>
+                    <div class="numpad-row" id="numpad-row-3"></div>
+                    <div class="numpad-row" id="numpad-row-4"></div>
+                    <div class="numpad-row" id="numpad-row-5"></div>
+                </div>
+                
+                <!-- 方向键 -->
+                <div class="arrow-section">
+                    <div class="arrow-row center" id="arrow-row-1"></div>
+                    <div class="arrow-row" id="arrow-row-2"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="resetGame()">重新开始</button>
+            <button onclick="shuffleKeys()">打乱键盘</button>
+            <button onclick="showSolution()">查看目标</button>
+        </div>
+        
+        <div class="game-rules">
+            <strong>游戏规则：</strong> 将所有按键按照标准键盘布局排列。点击与空位相邻的按键来交换位置。目标是恢复标准QWERTY键盘布局！
+        </div>
+        
+        <div id="winMessage" class="win-message" style="display: none;"></div>
+    </div>
+    
+    <script>
+        // 完整键盘布局（所有按键都可移动）
+        const keyboardLayout = [
+            // 功能键行
+            ['Esc', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', 'PrtSc', 'ScrLk', 'Pause'],
+            // 数字行
+            ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Backspace', 'NumLk', '/', '*', '-'],
+            // QWERTY行
+            ['Tab', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\\', '7', '8', '9', '+'],
+            // ASDF行
+            ['Caps', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', "'", 'Enter', '', '4', '5', '6', '+'],
+            // ZXCV行
+            ['Shift', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 'Shift', '', '1', '2', '3', 'Enter'],
+            // 底部行 + 方向键 + 小键盘底部
+            ['Ctrl', '', 'Alt', 'Space', 'Alt', 'Win', 'Menu', 'Ctrl', '↑', '0', '0', '.', 'Enter'],
+            // 方向键下行
+            ['', '', '', '', '', '', '', '←', '↓', '→', '', '', '']
+        ];
+
+        // 目标布局（标准键盘）
+        const targetLayout = [
+            ['Esc', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', 'PrtSc', 'ScrLk', 'Pause'],
+            ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Backspace', 'NumLk', '/', '*', '-'],
+            ['Tab', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\\', '7', '8', '9', '+'],
+            ['Caps', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', "'", 'Enter', '', '4', '5', '6', '+'],
+            ['Shift', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 'Shift', '', '1', '2', '3', 'Enter'],
+            ['Ctrl', 'Win', 'Alt', 'Space', 'Alt', 'Win', 'Menu', 'Ctrl', '↑', '0', '0', '.', 'Enter'],
+            ['', '', '', '', '', '', '', '←', '↓', '→', '', '', '']
+        ];
+        
+        let currentLayout = [];
+        let emptyPos = { row: 5, col: 1 }; // Win键位置作为初始空位
+        let steps = 0;
+        let startTime = null;
+        let timerInterval = null;
+        let gameWon = false;
+        
+        function initGame() {
+            // 深拷贝初始布局
+            currentLayout = keyboardLayout.map(row => [...row]);
+            
+            // 设置Win键位置为空
+            emptyPos = { row: 5, col: 1 };
+            currentLayout[5][1] = '';
+            
+            steps = 0;
+            document.getElementById('steps').textContent = steps;
+            
+            startTime = Date.now();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            gameWon = false;
+            document.getElementById('winMessage').style.display = 'none';
+            
+            renderKeyboard();
+        }
+        
+        function renderKeyboard() {
+            // 渲染功能键行
+            renderRow('function-row', currentLayout[0].slice(0, 13), ['key-esc']);
+            // 渲染右上功能键
+            renderRow('right-function', currentLayout[0].slice(13));
+            
+            // 渲染数字行 + 小键盘第一行
+            renderRow('number-row', currentLayout[1].slice(0, 14), ['', '', '', '', '', '', '', '', '', '', '', '', '', 'key-backspace']);
+            renderRow('numpad-row-1', currentLayout[1].slice(14));
+            
+            // 渲染QWERTY行 + 小键盘第二行
+            renderRow('qwerty-row', currentLayout[2].slice(0, 14), ['key-tab']);
+            renderRow('numpad-row-2', currentLayout[2].slice(14));
+            
+            // 渲染ASDF行 + 小键盘第三行
+            renderRow('asdf-row', currentLayout[3].slice(0, 13), ['key-caps', '', '', '', '', '', '', '', '', '', '', '', 'key-enter']);
+            renderRow('numpad-row-3', currentLayout[3].slice(14), ['', '', '', 'key-numpad-plus']);
+            
+            // 渲染ZXCV行 + 小键盘第四行  
+            renderRow('zxcv-row', currentLayout[4].slice(0, 12), ['key-shift-left', '', '', '', '', '', '', '', '', '', '', 'key-shift-right']);
+            renderRow('numpad-row-4', currentLayout[4].slice(14), ['', '', '', 'key-numpad-enter']);
+            
+            // 渲染底部行 + 方向键上 + 小键盘底部
+            renderRow('bottom-row', currentLayout[5].slice(0, 8), ['key-ctrl', '', 'key-alt', 'key-space', 'key-alt', '', '', 'key-ctrl']);
+            renderRow('arrow-row-1', [currentLayout[5][8]]);
+            renderRow('numpad-row-5', currentLayout[5].slice(9), ['key-numpad-0', '', '']);
+            
+            // 渲染方向键下行
+            renderRow('arrow-row-2', currentLayout[6].slice(7, 10));
+        }
+        
+        function renderRow(rowId, rowData, extraClasses = []) {
+            const rowElement = document.getElementById(rowId);
+            if (!rowElement) return;
+            
+            rowElement.innerHTML = '';
+            
+            rowData.forEach((key, index) => {
+                const keyElement = document.createElement('div');
+                keyElement.className = 'key';
+                
+                // 添加特殊样式类
+                if (extraClasses[index]) {
+                    keyElement.classList.add(extraClasses[index]);
+                }
+                
+                if (key === '') {
+                    keyElement.classList.add('empty');
+                } else {
+                    keyElement.textContent = key;
+                    
+                    // 添加按键类型属性用于样式区分
+                    keyElement.setAttribute('data-type', getKeyType(key));
+                    
+                    // 检查是否在正确位置
+                    if (isKeyInCorrectPosition(key, getRowIndex(rowId), getColIndex(rowId, index))) {
+                        keyElement.classList.add('correct');
+                    }
+                    
+                    // 检查是否可以移动
+                    if (isAdjacentToEmpty(getRowIndex(rowId), getColIndex(rowId, index))) {
+                        keyElement.classList.add('movable');
+                    }
+                }
+                
+                keyElement.onclick = () => handleKeyClick(getRowIndex(rowId), getColIndex(rowId, index));
+                rowElement.appendChild(keyElement);
+            });
+        }
+        
+        function getRowIndex(rowId) {
+            const rowMap = {
+                'function-row': 0, 'right-function': 0,
+                'number-row': 1, 'numpad-row-1': 1,
+                'qwerty-row': 2, 'numpad-row-2': 2,
+                'asdf-row': 3, 'numpad-row-3': 3,
+                'zxcv-row': 4, 'numpad-row-4': 4,
+                'bottom-row': 5, 'arrow-row-1': 5, 'numpad-row-5': 5,
+                'arrow-row-2': 6
+            };
+            return rowMap[rowId] || 0;
+        }
+        
+        function getColIndex(rowId, index) {
+            const offsetMap = {
+                'right-function': 13,
+                'numpad-row-1': 14, 'numpad-row-2': 14, 'numpad-row-3': 14, 'numpad-row-4': 14,
+                'arrow-row-1': 8, 'numpad-row-5': 9,
+                'arrow-row-2': 7
+            };
+            return (offsetMap[rowId] || 0) + index;
+        }
+        
+        function isKeyInCorrectPosition(key, row, col) {
+            return targetLayout[row] && targetLayout[row][col] === key;
+        }
+        
+        function handleKeyClick(row, col) {
+            if (gameWon) return;
+            
+            const key = currentLayout[row][col];
+            if (key === '') return; // 不能点击空位
+            
+            // 检查是否与空位相邻
+            if (isAdjacentToEmpty(row, col)) {
+                // 交换位置
+                currentLayout[emptyPos.row][emptyPos.col] = key;
+                currentLayout[row][col] = '';
+                emptyPos = { row, col };
+                
+                steps++;
+                document.getElementById('steps').textContent = steps;
+                
+                renderKeyboard();
+                checkWin();
+            }
+        }
+        
+        function isAdjacentToEmpty(row, col) {
+            const rowDiff = Math.abs(row - emptyPos.row);
+            const colDiff = Math.abs(col - emptyPos.col);
+            
+            // 基本的上下左右相邻判断
+            if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
+                // 检查是否跨越了键盘区域的视觉分割
+                if (row === emptyPos.row) {
+                    // 同行检查，需要考虑主键盘和右侧区域的分割
+                    return isHorizontallyAdjacent(row, col, emptyPos.col);
+                } else {
+                    // 垂直相邻检查，需要考虑列对齐
+                    return isVerticallyAdjacent(row, col, emptyPos.row, emptyPos.col);
+                }
+            }
+            
+            return false;
+        }
+        
+        function isVerticallyAdjacent(row1, col1, row2, col2) {
+            // 垂直相邻时，列必须相同
+            if (col1 !== col2) return false;
+            
+            // 检查是否在有效的键盘区域内
+            return isValidKeyPosition(row1, col1) && isValidKeyPosition(row2, col2);
+        }
+        
+        function isValidKeyPosition(row, col) {
+            // 检查位置是否在有效的键盘区域内（不是视觉上的空隙）
+            if (row < 0 || row >= keyboardLayout.length) return false;
+            if (col < 0 || col >= keyboardLayout[row].length) return false;
+            
+            // 特殊处理：某些位置在数据中存在但在视觉上是空隙
+            // 第3行第13列（Enter后面）在主键盘和小键盘之间是空隙
+            if (row === 3 && col === 13) return false;
+            // 第4行第12和13列在ZXCV行后面是空隙
+            if (row === 4 && (col === 12 || col === 13)) return false;
+            
+            return true;
+        }
+        
+        function isHorizontallyAdjacent(row, col1, col2) {
+            // 确保col1是较小的值
+            const minCol = Math.min(col1, col2);
+            const maxCol = Math.max(col1, col2);
+            
+            // 如果相差不是1，肯定不相邻
+            if (maxCol - minCol !== 1) return false;
+            
+            // 检查两个位置是否都是有效位置
+            if (!isValidKeyPosition(row, minCol) || !isValidKeyPosition(row, maxCol)) {
+                return false;
+            }
+            
+            // 定义每行中主键盘区域的结束位置
+            const mainKeyboardEndCol = getMainKeyboardEndCol(row);
+            const rightSectionStartCol = getRightSectionStartCol(row);
+            
+            // 检查是否跨越了主键盘和右侧区域的分割
+            if (minCol <= mainKeyboardEndCol && maxCol >= rightSectionStartCol) {
+                return false; // 跨越了分割，不相邻
+            }
+            
+            return true; // 在同一区域内相邻
+        }
+        
+        function getMainKeyboardEndCol(row) {
+            // 返回每行主键盘区域的最后一列
+            switch(row) {
+                case 0: return 12; // F12
+                case 1: return 13; // Backspace
+                case 2: return 13; // \
+                case 3: return 12; // Enter
+                case 4: return 11; // Shift
+                case 5: return 7;  // Ctrl
+                case 6: return 6;  // 空行
+                default: return 13;
+            }
+        }
+        
+        function getRightSectionStartCol(row) {
+            // 返回每行右侧区域的开始列
+            switch(row) {
+                case 0: return 13; // PrtSc
+                case 1: return 14; // NumLk
+                case 2: return 14; // 7
+                case 3: return 14; // 4
+                case 4: return 14; // 1
+                case 5: return 8;  // ↑
+                case 6: return 7;  // ←
+                default: return 14;
+            }
+        }
+        
+        function checkWin() {
+            let allCorrect = true;
+            
+            for (let r = 0; r < currentLayout.length; r++) {
+                for (let c = 0; c < currentLayout[r].length; c++) {
+                    const currentKey = currentLayout[r][c];
+                    const targetKey = targetLayout[r][c];
+                    
+                    if (currentKey !== targetKey && targetKey !== '') {
+                        allCorrect = false;
+                        break;
+                    }
+                }
+                if (!allCorrect) break;
+            }
+            
+            if (allCorrect) {
+                gameWon = true;
+                clearInterval(timerInterval);
+                const time = document.getElementById('time').textContent;
+                document.getElementById('winMessage').textContent = 
+                    `🎉 恭喜！您用了 ${steps} 步，耗时 ${time} 完成了键盘华容道！`;
+                document.getElementById('winMessage').style.display = 'block';
+            }
+        }
+        
+        function shuffleKeys() {
+            // 收集所有非空按键
+            const keys = [];
+            const positions = [];
+            
+            for (let r = 0; r < currentLayout.length; r++) {
+                for (let c = 0; c < currentLayout[r].length; c++) {
+                    if (currentLayout[r][c] !== '') {
+                        keys.push(currentLayout[r][c]);
+                        positions.push({ row: r, col: c });
+                    }
+                }
+            }
+            
+            // 打乱按键数组
+            for (let i = keys.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [keys[i], keys[j]] = [keys[j], keys[i]];
+            }
+            
+            // 重新分配按键到位置
+            positions.forEach((pos, index) => {
+                currentLayout[pos.row][pos.col] = keys[index];
+            });
+            
+            steps = 0;
+            document.getElementById('steps').textContent = steps;
+            renderKeyboard();
+        }
+        
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('time').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        function resetGame() {
+            initGame();
+        }
+        
+        function showSolution() {
+            alert('🎯 目标布局：标准QWERTY键盘布局\n\n' +
+                  '📋 游戏规则：\n' +
+                  '• 只能移动与空位（粉色区域）相邻的按键\n' +
+                  '• 可移动的按键在悬停时会变成蓝色\n' +
+                  '• 正确位置的按键会显示绿色\n\n' +
+                  '💡 策略技巧：\n' +
+                  '• 从外围按键开始排列\n' +
+                  '• 利用空位作为"中转站"\n' +
+                  '• 先排列功能键，再处理主键盘区域\n' +
+                  '• 最后处理小键盘和方向键区域');
+        }
+        
+        function getKeyType(key) {
+            // 功能键
+            if (['Esc', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', 
+                 'PrtSc', 'ScrLk', 'Pause', 'Tab', 'Caps', 'Shift', 'Ctrl', 'Alt', 'Win', 'Menu', 
+                 'Space', 'Enter', 'Backspace', 'NumLk'].includes(key)) {
+                return 'function';
+            }
+            
+            // 数字键
+            if (['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '/', '*', '+', '.'].includes(key)) {
+                return 'number';
+            }
+            
+            // 字母和符号键
+            if (/^[A-Z]$/.test(key) || ['[', ']', '\\', ';', "'", ',', '.', '/', '↑', '↓', '←', '→'].includes(key)) {
+                return 'letter';
+            }
+            
+            return 'letter';
+        }
+        
+        // 初始化游戏
+        initGame();
+    </script>
+</body>
+</html>

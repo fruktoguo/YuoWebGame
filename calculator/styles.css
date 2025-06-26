@@ -1,0 +1,935 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* 优化配色方案，更接近图片样式 */
+    --primary-color: #6979f8; /* 主色调：蓝紫色 */
+    --secondary-color: #a5affb; /* 次要色调：浅蓝紫色 */
+    --accent-color: #8c95f7; /* 强调色：中蓝紫色 */
+    
+    --text-color: #333344; /* 主文字颜色 */
+    --light-text: #777789; /* 次要文字颜色 */
+    --bg-color: #f7f7fc; /* 背景色 */
+    --light-bg: #f1f3ff; /* 浅色背景 */
+    --shadow-light: rgba(255, 255, 255, 0.7);
+    --shadow-dark: rgba(209, 209, 232, 0.5);
+    
+    /* 按钮颜色 */
+    --button-bg: #ffffff;
+    --button-operator: var(--primary-color);
+    --button-function: var(--light-bg);
+    --button-number: #ffffff;
+    --button-equals: var(--accent-color);
+    --display-bg: #ffffff;
+    
+    /* 圆角和间距 */
+    --border-radius: 12px;
+    --button-radius: 8px;
+    --button-gap: 8px;
+}
+
+body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+#matrixCanvas {
+    display: none; /* 移除矩阵背景效果 */
+}
+
+.calculator-container {
+    display: flex;
+    width: 100%;
+    max-width: 1200px;
+    height: 100vh;
+    margin: 0 auto;
+    padding: 15px;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 20px;
+    overflow: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* 三个主面板的共同样式 */
+.constants-panel, .calculator, .history-panel {
+    background: var(--bg-color);
+    border-radius: var(--border-radius);
+    box-shadow: 0px 10px 20px var(--shadow-dark);
+    padding: 15px;
+    margin: 10px 0;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 40px);
+    max-height: calc(100vh - 40px);
+    overflow: hidden;
+}
+
+/* 调整三个面板的相对宽度 */
+.constants-panel {
+    flex: 0 0 280px; /* 固定宽度 */
+    max-width: 280px;
+    overflow: hidden; /* 隐藏整个面板的溢出内容 */
+}
+
+.calculator {
+    flex: 1;
+    max-width: 700px;
+    min-width: 350px;
+    overflow: hidden; /* 隐藏整个计算器面板的溢出内容 */
+}
+
+.history-panel {
+    flex: 0 0 280px; /* 固定宽度 */
+    max-width: 280px;
+    overflow: hidden; /* 隐藏整个历史面板的溢出内容 */
+}
+
+.display {
+    background: var(--display-bg);
+    border-radius: var(--button-radius);
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    font-family: 'Roboto Mono', 'Consolas', monospace;
+    box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.05);
+    cursor: text;
+    font-size: 1.7em;
+    min-height: 95px; /* 设置最小高度 */
+    height: auto; /* 允许高度自动调整 */
+    width: 100%;
+    box-sizing: border-box;
+    overflow: visible; /* 允许内容溢出，防止截断 */
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(209, 209, 232, 0.5);
+}
+
+.history-header h3 {
+    color: var(--text-color);
+    font-size: 1.2em;
+    margin: 0;
+}
+
+.clear-history-btn, .clear-constants-btn {
+    background: #f1f1f5;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 0.9em;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.clear-history-btn:hover, .clear-constants-btn:hover {
+    background-color: #e5e5ea;
+}
+
+/* 历史记录滚动区域 */
+.history {
+    flex: 1;
+    max-height: calc(100% - 50px); /* 留出标题的空间 */
+    overflow-y: auto; /* 只有在内容超过高度时显示纵向滚动条 */
+    overflow-x: hidden; /* 隐藏横向滚动条 */
+    padding: 5px;
+    user-select: text;
+    scrollbar-width: thin; /* Firefox样式 */
+    scrollbar-color: var(--secondary-color) transparent; /* Firefox样式 */
+}
+
+.history-item {
+    position: relative;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    border-bottom: 1px dashed rgba(110, 110, 143, 0.2);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.history-item:hover {
+    background-color: rgba(105, 121, 248, 0.1);
+}
+
+.history-expression {
+    font-size: 0.95em;
+    color: var(--text-color);
+    padding-right: 50px; /* 为时间戳留出空间 */
+}
+
+.history-timestamp {
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    font-size: 0.7em;
+    color: var(--light-text);
+    opacity: 0.6;
+}
+
+.result-container {
+    display: flex;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 5px;
+}
+
+.current-input {
+    color: var(--text-color);
+    font-size: 1.7em;
+    text-align: right;
+    font-weight: 600;
+    width: 100%;
+    padding: 8px 35px 8px 8px; /* 右侧留出复制按钮的空间 */
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    font-family: 'Roboto Mono', 'Consolas', monospace;
+    white-space: pre-wrap; /* 保留换行并自动换行 */
+    word-break: break-all;
+    min-height: 40px; /* 只设置最小高度 */
+    max-height: 300px; /* 设置最大高度限制 */
+    height: auto; /* 允许高度自动调整 */
+    resize: none;
+    line-height: 1.3;
+    margin: 0;
+    box-sizing: border-box;
+    display: block; /* 确保是块级元素 */
+    overflow: hidden; /* 隐藏滚动条 */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    vertical-align: top; /* 确保垂直对齐 */
+}
+
+/* 专门为输入框隐藏WebKit滚动条 */
+.current-input::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+.current-input:focus {
+    background-color: rgba(0, 0, 0, 0.04);
+    box-shadow: inset 0 0 0 2px rgba(105, 121, 248, 0.2);
+}
+
+.buttons {
+    flex: 0 0 300px; /* 稍微调整宽度 */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 10px;
+    margin-right: 5px;
+}
+
+.button-row {
+    display: contents; /* 让子元素直接参与父级网格布局 */
+}
+
+.btn {
+    font-size: 1.15em;
+    border: none;
+    border-radius: var(--button-radius);
+    background: var(--button-bg);
+    color: var(--text-color);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    user-select: none;
+    padding: 0; /* 移除内边距，使用高度和宽度控制 */
+    height: 60px; /* 固定高度 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 数字按钮样式调整 */
+.buttons .btn {
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+/* 科学计算区域布局 */
+.scientific-buttons {
+    flex: 1;
+    max-width: 430px; /* 限制最大宽度 */
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    align-content: start;
+}
+
+.scientific-buttons .row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+/* 科学计算按钮样式 */
+.scientific-buttons .btn {
+    height: 48px; /* 略微增加高度 */
+    font-size: 0.95em;
+    padding: 0 5px; /* 为文字添加一些水平内边距 */
+}
+
+/* 按钮悬停效果 */
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active, .btn.active {
+    transform: scale(0.98);
+    box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .calculator-grid {
+        flex-direction: column;
+    }
+    
+    .settings-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .buttons {
+        flex: none;
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto 15px auto;
+    }
+    
+    .scientific-buttons {
+        width: 100%;
+    }
+    
+    .btn {
+        height: 50px;
+    }
+    
+    .scientific-buttons .btn {
+        height: 40px;
+    }
+    
+    .calculator-container {
+        padding: 8px;
+    }
+    
+    .calculator, .history-panel, .constants-panel {
+        width: 100%;
+        max-width: 100%;
+        padding: 10px;
+    }
+    
+    /* 确保移动设备上历史记录和常量列表可以滚动 */
+    .history, .constants-list {
+        max-height: 30vh; /* 在手机上设置更合理的高度 */
+    }
+    
+    /* 调整输入显示 */
+    .display, .current-input {
+        font-size: 1.4em;
+    }
+}
+
+/* 错误消息样式 */
+.error-display {
+    color: #e74c3c;
+    font-size: 0.9em;
+    min-height: 20px;
+    padding: 4px 0;
+    text-align: right;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    background-color: rgba(231, 76, 60, 0.05);
+    border-radius: 4px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.current-input.error {
+    color: #e74c3c;
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    background-color: rgba(231, 76, 60, 0.05);
+}
+
+@keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-2px, 0, 0); }
+    40%, 60% { transform: translate3d(2px, 0, 0); }
+}
+
+/* 添加显示区域选择时的样式 */
+.current-input::selection,
+.history-item::selection {
+    background-color: rgba(105, 121, 248, 0.3);
+}
+
+/* 添加结果容器和复制按钮的样式 */
+.copy-btn {
+    background: transparent;
+    border: none;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--light-text);
+    cursor: pointer;
+    border-radius: 4px;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 5;
+}
+
+.copy-btn:hover {
+    background-color: rgba(105, 121, 248, 0.1);
+    color: var(--primary-color);
+    opacity: 1;
+}
+
+.copy-btn:active {
+    transform: scale(0.95);
+}
+
+.copy-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* 复制成功的动画效果 */
+@keyframes copied {
+    0%, 100% {
+        color: var(--primary-color);
+    }
+    50% {
+        color: var(--accent-color);
+    }
+}
+
+.copy-btn.copied {
+    animation: copied 0.5s ease;
+}
+
+.copy-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 1200px) {
+    .calculator-container {
+        padding: 10px;
+        flex-direction: column;
+        height: auto;
+        max-height: none;
+        align-items: center;
+        overflow-y: auto; /* 允许整个容器滚动 */
+    }
+    
+    .constants-panel, .calculator, .history-panel {
+        width: 100%;
+        max-width: 650px;
+        flex: none;
+        margin: 10px 0;
+        height: auto;
+        max-height: 80vh; /* 限制每个面板的最大高度 */
+    }
+    
+    .constants-panel, .history-panel {
+        height: auto;
+        min-height: 300px;
+    }
+    
+    .constants-panel {
+        order: 1;
+    }
+    
+    .calculator {
+        order: 2;
+        min-height: 500px;
+    }
+    
+    .history-panel {
+        order: 3;
+    }
+    
+    /* 确保滚动区域在小屏幕上正常工作 */
+    .history, .constants-list {
+        max-height: calc(100vh * 0.6); /* 相对视口高度的固定比例 */
+    }
+}
+
+@media (max-width: 576px) {
+    .calculator-container {
+        padding: 10px;
+    }
+    
+    .calculator, .history-panel {
+        margin: 10px;
+        padding: 10px;
+        box-shadow: 0px 5px 15px var(--shadow-dark);
+    }
+    
+    .button-row, .scientific-buttons .row {
+        gap: 2px;
+    }
+    
+    .btn {
+        min-height: 38px;
+        font-size: 0.85em;
+        padding: 5px 0;
+    }
+    .display, .current-input {
+        font-size: 1.5em;
+    }
+    
+    /* 在小屏幕上改进科学计算器按钮布局 */
+    .calculator-grid {
+        flex-direction: column;
+    }
+    
+    .scientific-buttons {
+        order: 2;
+        margin-top: 10px;
+    }
+    
+    .buttons {
+        order: 1;
+    }
+    
+    .settings-content {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+/* 左右排列布局调整，删除冲突样式，重新设计 */
+.calculator-grid {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+}
+
+/* 优化设置区域样式 */
+.settings-section {
+    background: var(--light-bg);
+    border-radius: var(--button-radius);
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.settings-content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+}
+
+/* 使设置区域的输入框样式与计算器一致 */
+.setting-item label {
+    font-size: 0.9em;
+    color: var(--text-color);
+    flex: 1;
+}
+
+.setting-item input[type="number"] {
+    width: 70px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--secondary-color);
+    background: white;
+    font-family: 'Roboto Mono', 'Consolas', monospace;
+    text-align: center;
+    color: var(--text-color);
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.setting-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+/* 优化清除数据按钮 */
+.danger-btn {
+    flex: 1;
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+.danger-btn:hover {
+    background-color: #ff7875;
+}
+
+/* 设置标题样式 */
+.settings-title {
+    font-size: 1.1em;
+    margin: 0 0 15px 0;
+    color: var(--text-color);
+    font-weight: 600;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(105, 121, 248, 0.2);
+}
+
+/* 设置按钮组样式 */
+.setting-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    grid-column: 1 / -1;
+}
+
+.secondary-btn {
+    background-color: #f0f0f0;
+    color: var(--text-color);
+    border: none;
+    border-radius: 6px;
+    padding: 8px 15px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+}
+
+.secondary-btn:hover {
+    background-color: #e5e5e5;
+}
+
+.secondary-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: var(--light-text);
+}
+
+/* 角度模式按钮样式 */
+.angle-mode-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.angle-mode-btn {
+    padding: 6px 0;
+    font-size: 0.8em;
+}
+
+.angle-mode-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+}
+
+/* 函数快捷键盘样式 */
+.function-keypad {
+    margin-bottom: 10px;
+    padding: 6px;
+    background-color: var(--light-bg);
+    border-radius: var(--button-radius);
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.function-keypad-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.function-key {
+    flex: 1 0 auto;
+    min-width: 60px;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+    font-size: 0.9em;
+    padding: 6px 4px;
+    border-radius: 4px;
+}
+
+.function-key:hover {
+    background-color: var(--accent-color);
+}
+
+/* 常量定义面板样式 */
+.constants-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(209, 209, 232, 0.5);
+}
+
+.constants-header h3 {
+    color: var(--text-color);
+    font-size: 1.2em;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.constants-input-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.constant-input {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--shadow-dark);
+    font-family: 'Roboto Mono', monospace;
+    background-color: white;
+    min-width: 80px;
+    max-width: 120px;
+}
+
+.equals-sign {
+    font-size: 1.2em;
+    color: var(--text-color);
+    margin: 0 2px;
+    flex: 0 0 auto;
+}
+
+.add-constant-btn {
+    background: var(--primary-color);
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(105, 121, 248, 0.3);
+}
+
+.add-constant-btn:hover {
+    background: var(--accent-color);
+    box-shadow: 0 3px 6px rgba(105, 121, 248, 0.4);
+}
+
+/* 常量列表滚动区域 */
+.constants-list {
+    flex: 1;
+    max-height: calc(100% - 110px); /* 留出标题和输入区域的空间 */
+    overflow-y: auto; /* 只有在内容超过高度时显示纵向滚动条 */
+    overflow-x: hidden; /* 隐藏横向滚动条 */
+    margin-top: 10px;
+    border-radius: 8px;
+    padding: 5px 5px 10px 5px;
+    scrollbar-width: thin; /* Firefox样式 */
+    scrollbar-color: var(--secondary-color) transparent; /* Firefox样式 */
+}
+
+/* 自定义滚动条样式 - WebKit浏览器 */
+.history::-webkit-scrollbar,
+.constants-list::-webkit-scrollbar,
+.display::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.history::-webkit-scrollbar-track,
+.constants-list::-webkit-scrollbar-track,
+.display::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+}
+
+.history::-webkit-scrollbar-thumb,
+.constants-list::-webkit-scrollbar-thumb,
+.display::-webkit-scrollbar-thumb {
+    background: var(--secondary-color);
+    border-radius: 10px;
+    opacity: 0.7;
+}
+
+.history::-webkit-scrollbar-thumb:hover,
+.constants-list::-webkit-scrollbar-thumb:hover,
+.display::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* 设置其他容器默认隐藏滚动条 */
+body, .calculator-container, .settings-content {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    overflow-x: hidden;
+}
+
+/* 隐藏WebKit浏览器的滚动条 */
+body::-webkit-scrollbar,
+.calculator-container::-webkit-scrollbar,
+.settings-content::-webkit-scrollbar {
+    display: none;
+}
+
+.constant-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    background-color: white;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.constant-item:hover {
+    background-color: rgba(105, 121, 248, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.constant-definition {
+    font-family: 'Roboto Mono', monospace;
+    color: var(--text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 210px; /* 限制宽度 */
+}
+
+.constant-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.use-constant-btn, .delete-constant-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    color: var(--primary-color);
+    font-size: 1.2em;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.use-constant-btn:hover, .delete-constant-btn:hover {
+    opacity: 1;
+    background-color: rgba(105, 121, 248, 0.1);
+}
+
+.delete-constant-btn {
+    color: #ff6b6b;
+}
+
+/* 浏览器兼容性警告样式 */
+.browser-warning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #ffab91;
+    color: #7f0000;
+    padding: 15px;
+    text-align: center;
+    z-index: 9999;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.browser-warning p {
+    margin: 5px 0;
+    font-weight: 500;
+}
+
+/* 常量输入标识 */
+#constantName::placeholder,
+#constantValue::placeholder {
+    opacity: 0.7;
+    font-size: 0.9em;
+}
+
+.number {
+    background: var(--button-number);
+    font-weight: 600;
+}
+
+.operator {
+    background: var(--button-operator);
+    color: white;
+    font-weight: bold;
+    font-size: 1.15em;
+}
+
+.function {
+    background: var(--button-function);
+    color: var(--text-color);
+}
+
+.equals {
+    background: var(--button-equals);
+    color: white;
+    font-weight: bold;
+    font-size: 1.15em;
+}
+
+/* 全局隐藏滚动条 */
+::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+/* Firefox兼容 */
+* {
+    scrollbar-width: none;
+} 

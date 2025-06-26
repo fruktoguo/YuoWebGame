@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 编解码工具</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <canvas id="matrixCanvas"></canvas>
+    
+    <div class="container">
+        <header>
+            <div class="cyber-corner top-left"></div>
+            <div class="cyber-corner top-right"></div>
+            <div class="cyber-corner bottom-left"></div>
+            <div class="cyber-corner bottom-right"></div>
+            <h1 class="neon-title" data-text="Base64 编解码工具">Base64 编解码工具</h1>
+            <p class="subtitle">快速、安全的在线编解码转换</p>
+        </header>
+
+        <div class="tool-container">
+            <div class="input-section">
+                <h2>输入文本</h2>
+                <textarea id="inputText" placeholder="请输入要转换的文本..." class="cyber-input"></textarea>
+            </div>
+            
+            <div class="controls">
+                <button id="encodeBtn" class="cyber-button">编码</button>
+                <button id="decodeBtn" class="cyber-button">解码</button>
+                <button id="clearBtn" class="cyber-button">清空</button>
+                <button id="copyBtn" class="cyber-button">复制结果</button>
+            </div>
+
+            <div class="output-section">
+                <h2>转换结果</h2>
+                <textarea id="outputText" readonly class="cyber-input"></textarea>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <h3>实时转换</h3>
+                <p>即时编解码，无需等待</p>
+            </div>
+            <div class="feature-card">
+                <h3>本地处理</h3>
+                <p>数据不会上传服务器</p>
+            </div>
+            <div class="feature-card">
+                <h3>支持文件</h3>
+                <p>可处理文本和二进制文件</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2024 Base64 编解码工具 | 安全可靠的在线工具</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

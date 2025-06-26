@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生命游戏 - Game of Life</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="layout">
+        <div class="sidebar left-sidebar">
+            <div class="sidebar-content">
+                <h3>预设图形</h3>
+                <div id="patterns">
+                    <!-- 预设图形将由JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="container">
+                <h1>康威生命游戏</h1>
+                <div class="game-container">
+                    <canvas id="gameCanvas"></canvas>
+                    <div class="controls">
+                        <button id="startBtn">开始/暂停</button>
+                        <button id="clearBtn">清除</button>
+                        <button id="randomBtn">随机生成</button>
+                    </div>
+                </div>
+                <div class="instructions">
+                    <p>按空格键可以暂停/继续游戏</p>
+                    <p>点击格子可以手动绘制生命</p>
+                    <p>拖拽或点击预设图形添加到画布</p>
+                    <p>按ESC键取消选中的图形</p>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar right-sidebar">
+            <div class="sidebar-content">
+                <h3>游戏设置</h3>
+                <div id="settings"></div>
+            </div>
+        </div>
+    </div>
+    <script src="settings.js"></script>
+    <script type="module" src="main.js"></script>
+</body>
+</html> 

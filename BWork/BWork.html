@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>这b班上得值不值·测算版</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .header h1 {
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 0 -10px;
+      margin-bottom: 15px;
+    }
+    
+    .form-col {
+      flex: 1;
+      padding: 0 10px;
+      min-width: 200px;
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+    
+    input[type="number"]:focus {
+      border-color: #4a90e2;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
+    
+    .option-group {
+      margin-bottom: 20px;
+    }
+    
+    .option-title {
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .option-btn {
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+    
+    .option-btn:hover {
+      background-color: #f5f5f5;
+    }
+    
+    .option-btn.selected {
+      background-color: #e6f0ff;
+      border-color: #99c2ff;
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+    }
+    
+    .results {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      text-align: center;
+      gap: 15px;
+    }
+    
+    .result-item {
+      flex: 1;
+      min-width: 200px;
+      padding: 15px;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+    }
+    
+    .result-label {
+      font-size: 16px;
+      margin-bottom: 5px;
+      color: #666;
+    }
+    
+    .result-value {
+      font-size: 28px;
+      font-weight: bold;
+    }
+    
+    .result-value.good {
+      color: #2ecc71;
+    }
+    
+    .result-value.bad {
+      color: #e74c3c;
+    }
+    
+    .result-value.normal {
+      color: #f39c12;
+    }
+    
+    .result-value.excellent {
+      color: #2ecc71;
+    }
+    
+    .result-comment {
+      font-size: 16px;
+      margin-top: 5px;
+    }
+    
+    .factor-value {
+      font-size: 12px;
+      color: #999;
+      margin-left: 5px;
+    }
+    
+    .formula-card {
+      background-color: #f5f9ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #4a90e2;
+    }
+    
+    .formula {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      white-space: pre-wrap;
+      color: #333;
+    }
+    
+    .debug-info {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .salary-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .salary-item {
+      background-color: #f0f7ff;
+      padding: 10px 15px;
+      border-radius: 6px;
+      flex: 1;
+      min-width: 150px;
+      text-align: center;
+    }
+
+    .salary-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .salary-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: #4a90e2;
+    }
+    
+    @media (max-width: 768px) {
+      .form-col {
+        flex: 100%;
+      }
+      
+      .results {
+        flex-direction: column;
+      }
+      
+      .result-item {
+        margin: 5px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>这b班上得值不值·测算版</h1>
+    </div>
+    
+    <div class="formula-card">
+      <div class="formula">
+        工作性价比 = (平均日薪 × 综合环境系数) ÷ (35 × (工作时长 + 通勤时长 - 0.5×摸鱼时长) × 学历系数)
+        
+平均日薪 = 年薪 ÷ 250 (按一年工作250天计算)
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="form-group">
+        <label for="annualSalary">年薪(元)</label>
+        <input type="number" id="annualSalary" value="180000">
+        
+        <div class="salary-info">
+          <div class="salary-item">
+            <div class="salary-label">计算日薪</div>
+            <div class="salary-value" id="dailySalary">720元</div>
+          </div>
+          <div class="salary-item">
+            <div class="salary-label">实际时薪</div>
+            <div class="salary-value" id="hourlyWage">120元/小时</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-col">
+          <label for="workHours">工作时长(h)</label>
+          <input type="number" id="workHours" value="9" step="0.5">
+        </div>
+        <div class="form-col">
+          <label for="commuteHours">通勤时长(h)</label>
+          <input type="number" id="commuteHours" value="2" step="0.5">
+        </div>
+        <div class="form-col">
+          <label for="idleHours">摸鱼时长(h)</label>
+          <input type="number" id="idleHours" value="3" step="0.5">
+        </div>
+      </div>
+      
+      <div class="option-group" id="educationGroup">
+        <div class="option-title">学历</div>
+        <div class="options">
+          <button class="option-btn" data-value="0.8">专科及以下 <span class="factor-value">(0.8)</span></button>
+          <button class="option-btn selected" data-value="1.0">普通本科 <span class="factor-value">(1.0)</span></button>
+          <button class="option-btn" data-value="1.2">211/985本科 <span class="factor-value">(1.2)</span></button>
+          <button class="option-btn" data-value="1.4">普通硕士 <span class="factor-value">(1.4)</span></button>
+          <button class="option-btn" data-value="1.6">211/985硕士 <span class="factor-value">(1.6)</span></button>
+          <button class="option-btn" data-value="1.8">普通博士 <span class="factor-value">(1.8)</span></button>
+          <button class="option-btn" data-value="2.0">211/985博士 <span class="factor-value">(2.0)</span></button>
+        </div>
+      </div>
+      
+      <div class="option-group" id="workEnvGroup">
+        <div class="option-title">工作环境</div>
+        <div class="options">
+          <button class="option-btn" data-value="0.8">偏僻地区、艰苦户外 <span class="factor-value">(0.8)</span></button>
+          <button class="option-btn" data-value="0.9">工厂、工地、户外 <span class="factor-value">(0.9)</span></button>
+          <button class="option-btn selected" data-value="1.0">普通环境 <span class="factor-value">(1.0)</span></button>
+          <button class="option-btn" data-value="1.1">CBD、体制内 <span class="factor-value">(1.1)</span></button>
+        </div>
+      </div>
+      
+      <div class="option-group" id="genderEnvGroup">
+        <div class="option-title">异性环境</div>
+        <div class="options">
+          <button class="option-btn" data-value="0.9">没有好看的 <span class="factor-value">(0.9)</span></button>
+          <button class="option-btn selected" data-value="1.0">不多不少 <span class="factor-value">(1.0)</span></button>
+          <button class="option-btn" data-value="1.1">很多好看的 <span class="factor-value">(1.1)</span></button>
+        </div>
+      </div>
+      
+      <div class="option-group" id="colleagueGroup">
+        <div class="option-title">同事环境</div>
+        <div class="options">
+          <button class="option-btn" data-value="0.95">脑残同事较多 <span class="factor-value">(0.95)</span></button>
+          <button class="option-btn selected" data-value="1.0">都是普通同事 <span class="factor-value">(1.0)</span></button>
+          <button class="option-btn" data-value="1.05">优秀同事较多 <span class="factor-value">(1.05)</span></button>
+        </div>
+      </div>
+      
+      <div class="option-group" id="earlyWorkGroup">
+        <div class="option-title">是否8点上班</div>
+        <div class="options">
+          <button class="option-btn" data-value="0.95">是 <span class="factor-value">(0.95)</span></button>
+          <button class="option-btn selected" data-value="1.0">否 <span class="factor-value">(1.0)</span></button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="results">
+        <div class="result-item">
+          <div class="result-label">综合环境系数</div>
+          <div class="result-value" id="environmentFactor">1.000</div>
+        </div>
+        <div class="result-item">
+          <div class="result-label">工作性价比</div>
+          <div class="result-value" id="valueRatio">1.00</div>
+          <div class="result-comment" id="valueComment">(一般)</div>
+        </div>
+        <div class="result-item">
+          <div class="result-label">实际工作时长</div>
+          <div class="result-value" id="effectiveWorkHours">6小时</div>
+        </div>
+      </div>
+      
+      <div class="debug-info">
+        <div>计算细节：</div>
+        <div>- 平均日薪: <span id="dailySalaryDisplay">720元</span> (年薪÷250)</div>
+        <div>- 学历系数: <span id="educationFactorDisplay">1.0</span></div>
+        <div>- 35 × (工作时长 + 通勤时长 - 0.5×摸鱼时长) × 学历系数: <span id="denominatorDisplay">315.00</span></div>
+        <div>- 评价标准：低于0.8很惨，高于1.5很爽，高于2.0爽爆炸</div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // 当页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      // 初始化所有选项按钮事件
+      initOptionButtons();
+      
+      // 初始化输入框事件
+      initInputs();
+      
+      // 禁用所有数字输入框的鼠标滚轮事件
+      disableWheelOnAllInputs();
+      
+      // 首次计算结果
+      calculateResults();
+    });
+    
+    // 禁用所有数字输入框的鼠标滚轮事件
+    function disableWheelOnAllInputs() {
+      const numberInputs = document.querySelectorAll('input[type="number"]');
+      numberInputs.forEach(input => {
+        input.addEventListener('wheel', function(e) {
+          // 阻止默认的滚轮事件
+          e.preventDefault();
+        }, { passive: false });
+      });
+    }
+    
+    // 初始化选项按钮事件
+    function initOptionButtons() {
+      document.querySelectorAll('.option-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          // 找到当前按钮所在的选项组
+          const optionGroup = this.closest('.option-group');
+          
+          // 移除该组中所有按钮的选中状态
+          optionGroup.querySelectorAll('.option-btn').forEach(btn => {
+            btn.classList.remove('selected');
+          });
+          
+          // 设置当前按钮为选中状态
+          this.classList.add('selected');
+          
+          // 重新计算结果
+          calculateResults();
+        });
+      });
+    }
+    
+    // 初始化输入框事件
+    function initInputs() {
+      document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', calculateResults);
+      });
+    }
+    
+    // 获取选项组中选中按钮的值
+    function getSelectedValue(groupId) {
+      const selectedBtn = document.querySelector(`#${groupId} .option-btn.selected`);
+      return selectedBtn ? parseFloat(selectedBtn.getAttribute('data-value')) : 1.0;
+    }
+    
+    // 计算结果
+    function calculateResults() {
+      // 获取基本输入值
+      const annualSalary = parseFloat(document.getElementById('annualSalary').value) || 0;
+      const workHours = parseFloat(document.getElementById('workHours').value) || 0;
+      const commuteHours = parseFloat(document.getElementById('commuteHours').value) || 0;
+      const idleHours = parseFloat(document.getElementById('idleHours').value) || 0;
+      
+      // 计算日薪 (年薪/250工作日)
+      const dailySalary = annualSalary / 250;
+      
+      // 计算实际工作时长
+      const effectiveWorkHours = Math.max(workHours - idleHours, 0);
+      
+      // 计算时薪
+      const hourlyWage = effectiveWorkHours > 0 ? dailySalary / effectiveWorkHours : 0;
+      
+      // 获取学历系数（在分母）
+      const educationFactor = getSelectedValue('educationGroup');
+      
+      // 获取环境系数（在分子）
+      const workEnvFactor = getSelectedValue('workEnvGroup');
+      const genderEnvFactor = getSelectedValue('genderEnvGroup');
+      const colleagueFactor = getSelectedValue('colleagueGroup');
+      
+      // 获取早班系数（最终结果乘以）
+      const earlyWorkFactor = getSelectedValue('earlyWorkGroup');
+      
+      // 计算综合环境系数 = 工作环境系数 × 异性环境系数 × 同事环境系数
+      const environmentFactor = workEnvFactor * genderEnvFactor * colleagueFactor;
+      
+      // 计算分母: 35 × (工作时长 + 通勤时长 - 0.5×摸鱼时长) × 学历系数
+      const denominator = 35 * (workHours + commuteHours - 0.5 * idleHours) * educationFactor;
+      
+      // 计算工作性价比 = (平均日薪 × 综合环境系数) ÷ 分母
+      let valueRatio = 0;
+      if(denominator > 0) {
+        valueRatio = (dailySalary * environmentFactor) / denominator;
+      }
+      
+      // 如果是8点上班，最终结果乘以0.95
+      valueRatio = valueRatio * earlyWorkFactor;
+      
+      // 更新结果显示
+      document.getElementById('dailySalary').textContent = dailySalary.toFixed(0) + '元';
+      document.getElementById('hourlyWage').textContent = hourlyWage.toFixed(0) + '元/小时';
+      document.getElementById('environmentFactor').textContent = environmentFactor.toFixed(3);
+      document.getElementById('valueRatio').textContent = valueRatio.toFixed(2);
+      document.getElementById('effectiveWorkHours').textContent = effectiveWorkHours.toFixed(1) + '小时';
+      
+      document.getElementById('dailySalaryDisplay').textContent = dailySalary.toFixed(0) + '元';
+      document.getElementById('educationFactorDisplay').textContent = educationFactor.toFixed(1);
+      document.getElementById('denominatorDisplay').textContent = denominator.toFixed(2);
+      
+      // 设置评价
+      let comment = '';
+      let commentColor = '';
+      let valueRatioClass = '';
+      
+      if (valueRatio < 0.8) {
+        comment = '(很惨)';
+        commentColor = '#e74c3c';
+        valueRatioClass = 'result-value bad';
+      } else if (valueRatio < 1.5) {
+        comment = '(一般)';
+        commentColor = '#f39c12';
+        valueRatioClass = 'result-value normal';
+      } else if (valueRatio < 2.0) {
+        comment = '(很爽)';
+        commentColor = '#2ecc71';
+        valueRatioClass = 'result-value good';
+      } else {
+        comment = '(爽爆炸)';
+        commentColor = '#2ecc71';
+        valueRatioClass = 'result-value excellent';
+      }
+      
+      document.getElementById('valueRatio').className = valueRatioClass;
+      document.getElementById('valueComment').textContent = comment;
+      document.getElementById('valueComment').style.color = commentColor;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>放置挂机战斗游戏</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/character.css">
+    <link rel="stylesheet" href="css/combat.css">
+    <link rel="stylesheet" href="css/equipment.css">
+    <link rel="stylesheet" href="css/skills.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- 左侧导航菜单 -->
+        <nav class="sidebar">
+            <div class="nav-item active" data-page="character">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text">角色</span>
+            </div>
+            <div class="nav-item" data-page="equipment">
+                <span class="nav-icon">🛡️</span>
+                <span class="nav-text">背包</span>
+            </div>
+            <div class="nav-item" data-page="skills">
+                <span class="nav-icon">⚡</span>
+                <span class="nav-text">技能</span>
+            </div>
+        </nav>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 顶部资源栏 -->
+            <div class="resource-bar">
+                <div class="resource-item">
+                    <span class="resource-icon">💰</span>
+                    <span class="resource-value" id="gold">0</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">💎</span>
+                    <span class="resource-value" id="gems">0</span>
+                </div>
+            </div>
+
+            <!-- 左右分栏布局 -->
+            <div class="game-layout">
+                <!-- 左侧页面容器 -->
+                <div class="left-panel">
+                    <div class="page-container">
+                <!-- 角色页面 -->
+                <div class="page active" id="character-page">
+                    <div class="character-stats">
+                        <div class="stats-header">角色属性</div>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">物理攻击</span>
+                                <span class="stat-value" id="stat-physical-attack">10</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">魔法攻击</span>
+                                <span class="stat-value" id="stat-magical-attack">5</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">生命值</span>
+                                <span class="stat-value" id="stat-health">100</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">防御值</span>
+                                <span class="stat-value" id="stat-defense">5</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">魔法抗性</span>
+                                <span class="stat-value" id="stat-magic-resist">3</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">暴击率</span>
+                                <span class="stat-value" id="stat-crit-rate">10</span>
+                            </div>
+                        </div>
+                        
+                        <div class="attribute-points">
+                            <div class="points-header">自由属性点: <span id="free-points">0</span></div>
+                            <div class="points-allocation">
+                                <div class="allocation-item">
+                                    <span>物理攻击</span>
+                                    <button class="point-btn" data-attr="physicalAttack">+</button>
+                                </div>
+                                <div class="allocation-item">
+                                    <span>魔法攻击</span>
+                                    <button class="point-btn" data-attr="magicalAttack">+</button>
+                                </div>
+                                <div class="allocation-item">
+                                    <span>生命值</span>
+                                    <button class="point-btn" data-attr="health">+</button>
+                                </div>
+                                <div class="allocation-item">
+                                    <span>防御值</span>
+                                    <button class="point-btn" data-attr="defense">+</button>
+                                </div>
+                                <div class="allocation-item">
+                                    <span>魔法抗性</span>
+                                    <button class="point-btn" data-attr="magicResist">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 装备页面 -->
+                <div class="page" id="equipment-page">
+                    <div class="equipment-layout">
+                        <div class="equipment-slots">
+                            <div class="equipment-grid">
+                                <div class="equipment-slot" data-slot="helmet">
+                                    <div class="slot-icon">🪖</div>
+                                    <div class="slot-name">头盔</div>
+                                </div>
+                                <div class="equipment-slot" data-slot="necklace">
+                                    <div class="slot-icon">📿</div>
+                                    <div class="slot-name">项链</div>
+                                </div>
+                                <div class="equipment-slot" data-slot="shoulder">
+                                    <div class="slot-icon">🛡️</div>
+                                    <div class="slot-name">肩甲</div>
+                                </div>
+                                <div class="equipment-slot" data-slot="lefthand">
+                                    <div class="slot-icon">⚔️</div>
+                                    <div class="slot-name">左手</div>
+                                </div>
+                                <div class="equipment-slot" data-slot="chest">
+                                    <div class="slot-icon">👕</div>
+                                    <div class="slot-name">胸甲</div>
+                                </div>
+                                <div class="equipment-slot" data-slot="righthand">
+                                    <div class="slot-icon">🗡️</div>
+                                    <div class="slot-name">右手</div>
+                                </div>
+                                <div class="equipment-slot" data-slot="gloves">
+                                    <div class="slot-icon">🧤</div>
+                                    <div class="slot-name">手套</div>
+                                </div>
+                                <div class="equipment-slot" data-slot="belt">
+                                    <div class="slot-icon">🔗</div>
+                                    <div class="slot-name">腰带</div>
+                                </div>
+                                <div class="equipment-slot" data-slot="ring1">
+                                    <div class="slot-icon">💍</div>
+                                    <div class="slot-name">戒指1</div>
+                                </div>
+                                <div class="equipment-slot" data-slot="pants">
+                                    <div class="slot-icon">👖</div>
+                                    <div class="slot-name">护腿</div>
+                                </div>
+                                <div class="equipment-slot" data-slot="ring2">
+                                    <div class="slot-icon">💍</div>
+                                    <div class="slot-name">戒指2</div>
+                                </div>
+                                <div class="equipment-slot" data-slot="boots">
+                                    <div class="slot-icon">🥾</div>
+                                    <div class="slot-name">靴子</div>
+                                </div>
+                                <div class="equipment-slot" data-slot="earring">
+                                    <div class="slot-icon">👂</div>
+                                    <div class="slot-name">耳环</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="inventory">
+                            <div class="inventory-header">
+                                <div class="inventory-tabs">
+                                    <button class="tab-btn active" data-tab="equipment">装备</button>
+                                    <button class="tab-btn" data-tab="materials">材料</button>
+                                    <button class="tab-btn" data-tab="consumables">消耗品</button>
+                                </div>
+                                <div class="inventory-sort">
+                                    <select id="sort-select">
+                                        <option value="quality">品质</option>
+                                        <option value="level">等级</option>
+                                        <option value="type">类型</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="inventory-grid" id="inventory-grid">
+                                <!-- 背包物品将通过JavaScript动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技能页面 -->
+                <div class="page" id="skills-page">
+                    <div class="skills-container">
+                        <div class="skills-header">
+                            <div class="class-selector">
+                                <select id="class-select">
+                                    <option value="warrior">战士</option>
+                                    <option value="mage">法师</option>
+                                    <option value="tank">坦克</option>
+                                    <option value="priest">牧师</option>
+                                    <option value="assassin">刺客</option>
+                                    <option value="archer">射手</option>
+                                </select>
+                            </div>
+                            <div class="skill-points">技能点: <span id="skill-points">0</span></div>
+                        </div>
+                        
+                        <div class="skill-tree" id="skill-tree">
+                            <!-- 技能树将通过JavaScript动态生成 -->
+                        </div>
+                        
+                        <div class="auto-cast-settings">
+                            <div class="settings-header">自动施法设置</div>
+                            <div class="auto-cast-list" id="auto-cast-list">
+                                <!-- 自动施法设置将通过JavaScript动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                    </div>
+                </div>
+                
+                <!-- 右侧战斗页面 -->
+                <div class="right-panel">
+                    <div class="combat-page">
+                        <!-- 战斗表现区域 -->
+                        <div class="battle-display">
+                            <!-- 玩家角色列表 -->
+                            <div class="player-characters">
+                                <div class="character-avatar-box">
+                                    <div class="character-portrait">
+                                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjNEY0NjNGIiByeD0iOCIvPgo8cGF0aCBkPSJNMzIgMTZDMzUuMzEzNyAxNiAzOCAxOC42ODYzIDM4IDIyQzM4IDI1LjMxMzcgMzUuMzEzNyAyOCAzMiAyOEMyOC42ODYzIDI4IDI2IDI1LjMxMzcgMjYgMjJDMjYgMTguNjg2MyAyOC42ODYzIDE2IDMyIDE2WiIgZmlsbD0iI0ZGQzEwNyIvPgo8cGF0aCBkPSJNMjAgNDhDMjAgNDAuMjY4IDI2LjI2OCAzNCAzNCAzNEMzNS4zMTM3IDM0IDM2LjU1IDM0LjI0NzEgMzcuNjc4NCAzNC42OTg1QzM5LjA0NzEgMzUuMjM1MyAzOS44OTQ3IDM0LjkxMTggNDEuMzE1OCAzNC4zMTU4QzQyLjczNjggMzMuNzE5NyA0My45NDczIDMzLjQ0NzQgNDUuMzE1OCAzMy4zMTU4QzQ2LjY4NDIgMzMuMTg0MiA0OCAzMy4zMTU4IDQ4IDM0QzQ4IDM0IDQ4IDQyIDQ4IDQ4SDIwWiIgZmlsbD0iIzMzNzNEQyIvPgo8L3N2Zz4K" alt="角色">
+                                    </div>
+                                    <div class="character-bars">
+                                        <div class="hp-bar">
+                                            <div class="hp-fill" id="player-hp-fill" style="width: 100%"></div>
+                                        </div>
+                                        <div class="mp-bar">
+                                            <div class="mp-fill" id="player-mp-fill" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- VS 标识 -->
+                            <div class="vs-indicator">VS</div>
+                            
+                            <!-- 怪物列表 -->
+                            <div class="enemy-characters">
+                                <div class="enemy-avatar-box">
+                                    <div class="enemy-portrait">
+                                        <img id="battle-enemy-image" src="" alt="敌人">
+                                    </div>
+                                    <div class="enemy-bars">
+                                        <div class="hp-bar">
+                                            <div class="hp-fill" id="enemy-hp-fill" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="enemy-info">
+                                        <div class="enemy-name" id="battle-enemy-name">骷髅战士</div>
+                                        <div class="enemy-level">等级 <span id="battle-enemy-level">1</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 技能栏 -->
+                        <div class="skill-bar">
+                            <div class="skill-slots">
+                                <div class="skill-slot-large" data-skill="0">
+                                    <div class="skill-icon">🔥</div>
+                                    <div class="skill-dropdown">
+                                        <select class="skill-select">
+                                            <option value="">选择技能</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="skill-slot-large" data-skill="1">
+                                    <div class="skill-icon">❄️</div>
+                                    <div class="skill-dropdown hidden">
+                                        <select class="skill-select">
+                                            <option value="">选择技能</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="skill-slot-large" data-skill="2">
+                                    <div class="skill-icon">⚡</div>
+                                    <div class="skill-dropdown hidden">
+                                        <select class="skill-select">
+                                            <option value="">选择技能</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="skill-slot-large" data-skill="3">
+                                    <div class="skill-icon">🗡️</div>
+                                    <div class="skill-dropdown hidden">
+                                        <select class="skill-select">
+                                            <option value="">选择技能</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="skill-slot-large" data-skill="4">
+                                    <div class="skill-icon">🛡️</div>
+                                    <div class="skill-dropdown hidden">
+                                        <select class="skill-select">
+                                            <option value="">选择技能</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="skill-slot-large" data-skill="5">
+                                    <div class="skill-icon">💫</div>
+                                    <div class="skill-dropdown hidden">
+                                        <select class="skill-select">
+                                            <option value="">选择技能</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="skill-slot-large" data-skill="6">
+                                    <div class="skill-icon">🌟</div>
+                                    <div class="skill-dropdown hidden">
+                                        <select class="skill-select">
+                                            <option value="">选择技能</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="skill-slot-large" data-skill="7">
+                                    <div class="skill-icon">✨</div>
+                                    <div class="skill-dropdown hidden">
+                                        <select class="skill-select">
+                                            <option value="">选择技能</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 战斗日志 -->
+                        <div class="combat-log">
+                            <div class="log-header">战斗日志</div>
+                            <div class="log-content" id="combat-log">
+                                <div class="log-entry">战斗开始...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+
+    </div>
+
+    <!-- 工具提示 -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <!-- JavaScript文件 -->
+    <script src="js/utils/Utils.js"></script>
+    <script src="js/utils/Calculator.js"></script>
+    <script src="js/utils/Storage.js"></script>
+    <script src="js/data/classes.js"></script>
+    <script src="js/data/skills.js"></script>
+    <script src="js/data/equipment.js"></script>
+    <script src="js/data/monsters.js"></script>
+    <script src="js/core/Character.js"></script>
+    <script src="js/core/Equipment.js"></script>
+    <script src="js/core/Skills.js"></script>
+    <script src="js/core/Combat.js"></script>
+    <script src="js/core/Game.js"></script>
+    <script src="js/ui/CharacterUI.js"></script>
+    <script src="js/ui/CombatUI.js"></script>
+    <script src="js/ui/EquipmentUI.js"></script>
+    <script src="js/ui/SkillUI.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html> 
