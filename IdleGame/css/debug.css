@@ -1,0 +1,189 @@
+/* 开发者测试页面样式 */
+.debug-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #1e293b;
+    border-radius: 12px;
+    border: 2px solid #334155;
+}
+
+.debug-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #334155;
+}
+
+.debug-header h2 {
+    color: #f59e0b;
+    margin: 0 0 10px 0;
+    font-size: 24px;
+}
+
+.debug-header p {
+    color: #94a3b8;
+    margin: 0;
+    font-style: italic;
+}
+
+.debug-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+}
+
+.debug-section {
+    background: #374151;
+    border-radius: 10px;
+    padding: 20px;
+    border: 2px solid #4b5563;
+}
+
+.debug-section h3 {
+    color: #60a5fa;
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    border-bottom: 1px solid #4b5563;
+    padding-bottom: 8px;
+}
+
+.debug-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.control-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #4b5563;
+    border-radius: 8px;
+}
+
+.control-group label {
+    color: #d1d5db;
+    font-weight: 500;
+    min-width: 80px;
+}
+
+.control-group input,
+.control-group select {
+    background: #374151;
+    color: #d1d5db;
+    border: 2px solid #6b7280;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    min-width: 100px;
+}
+
+.control-group input:focus,
+.control-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.control-group button {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 100px;
+}
+
+.control-group button:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.control-group button:active {
+    transform: translateY(0);
+}
+
+/* 特殊按钮样式 */
+.control-group button[onclick*="Clear"],
+.control-group button[onclick*="Reset"] {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.control-group button[onclick*="Clear"]:hover,
+.control-group button[onclick*="Reset"]:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.control-group button[onclick*="Add"],
+.control-group button[onclick*="Generate"] {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.control-group button[onclick*="Add"]:hover,
+.control-group button[onclick*="Generate"]:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.control-group button[onclick*="Print"],
+.control-group button[onclick*="Show"] {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.control-group button[onclick*="Print"]:hover,
+.control-group button[onclick*="Show"]:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .debug-sections {
+        grid-template-columns: 1fr;
+    }
+    
+    .control-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .control-group label {
+        min-width: auto;
+        text-align: center;
+    }
+    
+    .control-group input,
+    .control-group select,
+    .control-group button {
+        min-width: auto;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .debug-container {
+        padding: 15px;
+        margin: 10px;
+    }
+    
+    .debug-header h2 {
+        font-size: 20px;
+    }
+    
+    .debug-section {
+        padding: 15px;
+    }
+    
+    .debug-section h3 {
+        font-size: 16px;
+    }
+} 

@@ -12,7 +12,7 @@ const ClassData = {
             magicResist: 5,
             critRate: 5,
             critDamage: 50,
-            hitRate: 10,
+            hitRate: 100,
             dodgeRate: 5,
             skillCooldown: 0
         },
@@ -44,7 +44,7 @@ const ClassData = {
             magicResist: 12,
             critRate: 8,
             critDamage: 60,
-            hitRate: 12,
+            hitRate: 100,
             dodgeRate: 8,
             skillCooldown: 15
         },
@@ -76,7 +76,7 @@ const ClassData = {
             magicResist: 8,
             critRate: 12,
             critDamage: 75,
-            hitRate: 15,
+            hitRate: 100,
             dodgeRate: 10,
             skillCooldown: 8
         },
@@ -108,7 +108,7 @@ const ClassData = {
             magicResist: 7,
             critRate: 18,
             critDamage: 100,
-            hitRate: 12,
+            hitRate: 100,
             dodgeRate: 15,
             skillCooldown: 5
         },

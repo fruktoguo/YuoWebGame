@@ -2,10 +2,14 @@
 class Utils {
     // 格式化数字显示
     static formatNumber(num) {
-        if (num < 1000) return Math.floor(num).toString();
-        if (num < 1000000) return (num / 1000).toFixed(1) + 'K';
-        if (num < 1000000000) return (num / 1000000).toFixed(1) + 'M';
-        return (num / 1000000000).toFixed(1) + 'B';
+        // 处理无效输入
+        if (num === undefined || num === null || isNaN(num)) return '0';
+        
+        const n = Number(num);
+        if (n < 1000) return Math.floor(n).toString();
+        if (n < 1000000) return (n / 1000).toFixed(1) + 'K';
+        if (n < 1000000000) return (n / 1000000).toFixed(1) + 'M';
+        return (n / 1000000000).toFixed(1) + 'B';
     }
 
     // 生成随机数
@@ -21,6 +25,19 @@ class Utils {
     // 从数组中随机选择一个元素
     static randomChoice(array) {
         return array[Math.floor(Math.random() * array.length)];
+    }
+
+    // 从数组中随机选择多个元素
+    static getRandomElements(array, count) {
+        if (count >= array.length) return [...array];
+        
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        
+        return shuffled.slice(0, count);
     }
 
     // 权重随机选择
@@ -129,14 +146,7 @@ class Utils {
 
     // 获取品质名称
     static getQualityName(quality) {
-        const names = {
-            common: '普通',
-            magic: '魔法',
-            rare: '稀有',
-            epic: '史诗',
-            legendary: '传说'
-        };
-        return names[quality] || names.common;
+        return T('quality.' + quality);
     }
 
     // 计算两点距离

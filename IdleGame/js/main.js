@@ -54,10 +54,10 @@ document.addEventListener('visibilitychange', () => {
     if (game) {
         if (document.hidden) {
             // 页面进入后台，暂停游戏
-            game.pause();
+            game.pauseGame();
         } else {
             // 页面回到前台，恢复游戏
-            game.resume();
+            game.resumeGame();
         }
     }
 });
@@ -103,7 +103,7 @@ function addExp(amount) {
 function generateEquipment() {
     if (game && game.equipment) {
         const slots = game.equipment.slots;
-        const randomSlot = Utils.getRandomElement(slots);
+        const randomSlot = Utils.randomChoice(slots);
         const equipment = game.equipment.generateRandomEquipment(
             game.character.level, 
             randomSlot
@@ -123,7 +123,7 @@ function levelUp() {
 }
 
 function resetGame() {
-    if (confirm('确定要重置游戏吗？这将清除所有进度！')) {
+    if (confirm(T('confirm.resetGame'))) {
         localStorage.removeItem('idleGame_save');
         location.reload();
     }

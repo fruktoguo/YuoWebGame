@@ -1,293 +1,495 @@
 /* 战斗页面样式 */
 .combat-page {
-    padding: 20px;
-    height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    height: 100%;
+    background: linear-gradient(135deg, #2c1810 0%, #1a0f08 100%);
+    color: #fff;
+    overflow: hidden;
 }
 
-/* 战斗表现区域 */
+/* 战斗表现区域 - 占据上半部分 */
 .battle-display {
-    flex: 1;
+    height: 50%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-    border-radius: 15px;
-    padding: 30px;
-    border: 2px solid #475569;
-    min-height: 200px;
+    padding: 15px;
+    position: relative;
+    background: radial-gradient(ellipse at center, rgba(255,100,0,0.1) 0%, transparent 70%);
+    border-bottom: 2px solid rgba(255,255,255,0.1);
 }
 
-/* 玩家角色区域 */
-.player-characters {
+/* 角色头像容器 */
+.character-avatar-box, .enemy-avatar-box {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 8px;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
-/* 角色头像框 */
-.character-avatar-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+.character-avatar-box:hover, .enemy-avatar-box:hover {
+    transform: scale(1.05);
 }
 
-.character-portrait {
-    width: 80px;
-    height: 80px;
-    border-radius: 15px;
-    border: 3px solid #3b82f6;
+/* 角色头像 - 稍微缩小 */
+.character-portrait, .enemy-portrait {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 3px solid #4CAF50;
     overflow: hidden;
-    background: #374151;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
+    background: linear-gradient(45deg, #2196F3, #4CAF50);
+    transition: all 0.3s ease;
 }
 
-.character-portrait img {
+.enemy-portrait {
+    border-color: #f44336;
+    background: linear-gradient(45deg, #f44336, #FF9800);
+}
+
+.character-portrait img, .enemy-portrait img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-/* 角色血条和蓝条 */
-.character-bars {
+/* 血量条和魔法值条 */
+.character-bars, .enemy-bars {
+    width: 90px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    width: 80px;
+    gap: 3px;
+}
+
+.hp-bar, .mp-bar, .action-bar {
+    height: 6px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.2);
+    position: relative;
 }
 
 .hp-bar, .mp-bar {
-    height: 8px;
-    background: #374151;
-    border-radius: 4px;
-    overflow: hidden;
+    overflow: visible; /* 允许文本溢出显示 */
+}
+
+.action-bar {
+    overflow: hidden; /* 行动条不需要显示文本 */
 }
 
 .hp-fill {
     height: 100%;
-    background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
-    transition: width 0.3s ease;
+    background: linear-gradient(90deg, #ff4444, #ff6666);
+    border-radius: 3px;
+    transition: width 0.5s ease;
 }
 
 .mp-fill {
     height: 100%;
-    background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 100%);
-    transition: width 0.3s ease;
+    background: linear-gradient(90deg, #4444ff, #6666ff);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+/* 行动条 */
+.action-bar {
+    height: 4px;
+    margin-top: 2px;
+}
+
+.action-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffaa00, #ffdd44);
+    border-radius: 2px;
+    transition: width 0.1s linear;
+}
+
+/* 血量数值显示 */
+.hp-text, .mp-text {
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0.9;
+    background: rgba(0,0,0,0.5);
+    padding: 1px 4px;
+    border-radius: 2px;
+    white-space: nowrap;
+    min-width: 40px;
+    text-align: center;
+    overflow: visible;
 }
 
 /* VS 标识 */
 .vs-indicator {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
-    color: #fbbf24;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    padding: 10px 20px;
-    background: rgba(251, 191, 36, 0.1);
-    border-radius: 10px;
-    border: 2px solid #fbbf24;
+    color: #FFD700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    animation: pulse 2s infinite;
 }
 
-/* 敌人区域 */
-.enemy-characters {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
 }
 
-.enemy-avatar-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
-.enemy-portrait {
-    width: 80px;
-    height: 80px;
-    border-radius: 15px;
-    border: 3px solid #ef4444;
-    overflow: hidden;
-    background: #374151;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.enemy-portrait img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.enemy-bars {
-    width: 80px;
-}
-
+/* 敌人信息 */
 .enemy-info {
     text-align: center;
-    font-size: 12px;
+    margin-top: 5px;
 }
 
 .enemy-name {
     font-weight: bold;
-    color: #ef4444;
-    margin-bottom: 2px;
+    font-size: 14px;
+    color: #FFD700;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
 
 .enemy-level {
-    color: #94a3b8;
+    font-size: 11px;
+    color: #ccc;
 }
 
-/* 技能栏 */
+/* 攻击动画 */
+@keyframes attack-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px) scale(1.1); }
+    75% { transform: translateX(5px) scale(1.1); }
+}
+
+@keyframes attack-glow {
+    0%, 100% { box-shadow: 0 0 0 rgba(255,255,255,0); }
+    50% { box-shadow: 0 0 20px rgba(255,255,255,0.8); }
+}
+
+.character-avatar-box.attacking, .enemy-avatar-box.attacking {
+    animation: attack-shake 0.5s ease-in-out;
+}
+
+.character-avatar-box.attacking .character-portrait, 
+.enemy-avatar-box.attacking .enemy-portrait {
+    animation: attack-glow 0.5s ease-in-out;
+}
+
+/* 死亡动画 */
+@keyframes death-fade {
+    0% { opacity: 1; transform: scale(1) rotate(0deg); }
+    50% { opacity: 0.5; transform: scale(0.9) rotate(-5deg); }
+    100% { opacity: 0.3; transform: scale(0.8) rotate(-10deg); }
+}
+
+.character-avatar-box.dying, .enemy-avatar-box.dying {
+    animation: death-fade 1s ease-in-out;
+}
+
+/* 伤害数字 */
+.damage-number {
+    position: absolute;
+    font-weight: bold;
+    font-size: 16px;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    pointer-events: none;
+    z-index: 1000;
+    animation: damage-float 1s ease-out forwards;
+}
+
+/* 物理伤害 - 红色 */
+.damage-number.physical {
+    color: #ff6666;
+    text-shadow: 0 0 8px rgba(255,102,102,0.6), 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+.damage-number.physical.crit {
+    font-size: 24px;
+    color: #ff3333;
+    text-shadow: 0 0 15px rgba(255,51,51,0.9), 2px 2px 4px rgba(0,0,0,0.8);
+    animation: damage-float-crit 1s ease-out forwards;
+}
+
+/* 魔法伤害 - 蓝色 */
+.damage-number.magical {
+    color: #6699ff;
+    text-shadow: 0 0 8px rgba(102,153,255,0.6), 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+.damage-number.magical.crit {
+    font-size: 24px;
+    color: #3366ff;
+    text-shadow: 0 0 15px rgba(51,102,255,0.9), 2px 2px 4px rgba(0,0,0,0.8);
+    animation: damage-float-crit 1s ease-out forwards;
+}
+
+/* 兼容旧的暴击样式 */
+.damage-number.crit {
+    font-size: 20px;
+    color: #ff6b6b;
+    text-shadow: 0 0 10px rgba(255,107,107,0.8);
+}
+
+/* Miss文本样式 */
+.miss-text {
+    position: absolute;
+    font-weight: bold;
+    font-size: 16px;
+    color: #888;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    pointer-events: none;
+    z-index: 1000;
+    animation: miss-float 1s ease-out forwards;
+}
+
+@keyframes miss-float {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-20px) scale(1.1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-35px) scale(0.9);
+    }
+}
+
+@keyframes damage-float {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-40px) scale(1.2);
+    }
+}
+
+/* 暴击专用动画 - 更震撼的效果 */
+@keyframes damage-float-crit {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotate(0deg);
+    }
+    20% {
+        transform: translateY(-10px) scale(1.3) rotate(-2deg);
+    }
+    40% {
+        transform: translateY(-20px) scale(1.2) rotate(2deg);
+    }
+    60% {
+        transform: translateY(-30px) scale(1.1) rotate(-1deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-50px) scale(1.4) rotate(0deg);
+    }
+}
+
+/* 技能栏 - 缩小 */
 .skill-bar {
-    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
-    border-radius: 15px;
-    padding: 20px;
-    border: 2px solid #6b7280;
+    padding: 10px;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .skill-slots {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     justify-content: center;
     flex-wrap: wrap;
 }
 
 .skill-slot-large {
-    width: 60px;
-    height: 60px;
-    background: #1f2937;
-    border: 2px solid #374151;
-    border-radius: 10px;
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(145deg, #333, #222);
+    border: 2px solid #444;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
     position: relative;
+    transition: all 0.3s ease;
 }
 
 .skill-slot-large:hover {
-    border-color: #3b82f6;
-    background: #1e3a8a;
+    border-color: #FFD700;
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255,215,0,0.3);
 }
 
-.skill-slot-large .skill-icon {
+.skill-icon {
     font-size: 24px;
+    transition: transform 0.2s ease;
 }
 
-.skill-dropdown {
-    position: absolute;
-    top: -40px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1f2937;
-    border: 2px solid #374151;
-    border-radius: 8px;
-    padding: 5px;
-    z-index: 10;
-    min-width: 120px;
+.skill-slot-large:hover .skill-icon {
+    transform: scale(1.1);
 }
 
-.skill-dropdown.hidden {
-    display: none;
+/* 有技能的槽位样式 */
+.skill-slot-large.has-skill {
+    border-color: #FFD700;
+    background: linear-gradient(145deg, #444, #333);
 }
 
-.skill-select {
-    background: #374151;
-    color: #ffffff;
-    border: 1px solid #4b5563;
-    border-radius: 4px;
-    padding: 4px 8px;
-    font-size: 12px;
-    width: 100%;
+.skill-slot-large.has-skill:hover {
+    border-color: #FFA500;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
 }
 
-/* 战斗日志 */
+/* 空技能槽样式 */
+.skill-slot-large:not(.has-skill) {
+    opacity: 0.6;
+}
+
+.skill-slot-large:not(.has-skill) .skill-icon {
+    color: #666;
+}
+
+
+
+/* 战斗日志 - 占据下半部分 */
 .combat-log {
-    background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
-    border-radius: 15px;
-    border: 2px solid #374151;
-    height: 200px;
+    flex: 1;
+    background: rgba(0,0,0,0.5);
+    border-top: 2px solid rgba(255,255,255,0.1);
     display: flex;
     flex-direction: column;
+    min-height: 0; /* 确保flex子元素可以收缩 */
 }
 
 .log-header {
-    padding: 15px 20px;
-    background: linear-gradient(90deg, #1f2937 0%, #374151 100%);
-    border-bottom: 2px solid #4b5563;
+    padding: 8px 15px;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
     font-weight: bold;
-    color: #60a5fa;
-    border-radius: 13px 13px 0 0;
+    color: #FFD700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    flex-shrink: 0; /* 防止头部被压缩 */
 }
 
 .log-content {
     flex: 1;
-    padding: 15px 20px;
+    padding: 8px 15px;
     overflow-y: auto;
     font-family: 'Courier New', monospace;
-    font-size: 13px;
-    line-height: 1.4;
+    font-size: 11px;
+    line-height: 1.3;
+    min-height: 0; /* 允许滚动 */
 }
 
 .log-entry {
-    margin-bottom: 8px;
-    opacity: 0.9;
-    transition: opacity 0.3s ease;
+    margin-bottom: 1px;
+    padding: 1px 0;
+    color: #ccc;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    word-wrap: break-word;
 }
 
 .log-entry:last-child {
-    opacity: 1;
-    color: #60a5fa;
+    border-bottom: none;
+    margin-bottom: 0;
 }
 
-.log-entry.damage {
-    color: #ef4444;
+/* 战斗控制按钮 */
+.combat-controls {
+    display: flex;
+    gap: 8px;
+    padding: 8px 15px;
+    background: rgba(0,0,0,0.3);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0; /* 防止控制按钮被压缩 */
 }
 
-.log-entry.heal {
-    color: #10b981;
+.combat-btn {
+    padding: 6px 12px;
+    background: linear-gradient(145deg, #4CAF50, #45a049);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.3s ease;
 }
 
-.log-entry.critical {
-    color: #fbbf24;
+.combat-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.combat-btn.pause {
+    background: linear-gradient(145deg, #FF9800, #f57c00);
+}
+
+.combat-btn.stop {
+    background: linear-gradient(145deg, #f44336, #d32f2f);
+}
+
+.combat-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 战斗统计 */
+.combat-stats {
+    display: flex;
+    gap: 15px;
+    padding: 8px 15px;
+    background: rgba(0,0,0,0.2);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 11px;
+    flex-shrink: 0; /* 防止统计信息被压缩 */
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.stat-label {
+    color: #999;
+    font-size: 9px;
+}
+
+.stat-value {
+    color: #FFD700;
     font-weight: bold;
 }
 
 /* 响应式设计 */
-@media (max-width: 1200px) {
-    .battle-display {
-        flex-direction: column;
-        gap: 20px;
-        padding: 20px;
-    }
-    
-    .vs-indicator {
-        order: 2;
-        font-size: 18px;
-    }
-    
-    .player-characters {
-        order: 1;
-    }
-    
-    .enemy-characters {
-        order: 3;
-    }
-}
-
 @media (max-width: 768px) {
-    .skill-slots {
-        gap: 8px;
+    .battle-display {
+        padding: 10px;
+    }
+    
+    .character-portrait, .enemy-portrait {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .character-bars, .enemy-bars {
+        width: 80px;
     }
     
     .skill-slot-large {
@@ -295,11 +497,206 @@
         height: 50px;
     }
     
-    .skill-slot-large .skill-icon {
+    .skill-icon {
         font-size: 20px;
+    }
+    
+    .vs-indicator {
+        font-size: 18px;
     }
     
     .combat-log {
         height: 150px;
     }
+    
+    .combat-stats {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}
+
+/* 暂停状态 */
+.combat-page.paused {
+    filter: grayscale(50%);
+}
+
+.combat-page.paused .battle-display::after {
+    content: "暂停中";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    z-index: 100;
+}
+
+/* 胜利效果 */
+@keyframes victory-flash {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: rgba(255,215,0,0.2); }
+}
+
+.combat-page.victory {
+    animation: victory-flash 0.5s ease-in-out 3;
+}
+
+/* 失败效果 */
+@keyframes defeat-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.combat-page.defeat {
+    animation: defeat-shake 0.5s ease-in-out 2;
+    filter: hue-rotate(180deg);
+}
+
+/* 敌人角色容器 */
+.enemy-characters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    max-width: 300px;
+}
+
+/* 单个敌人容器 */
+.enemy-avatar-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    transition: all 0.3s ease;
+    min-width: 80px;
+}
+
+/* 敌人信息 */
+.enemy-info {
+    text-align: center;
+    margin-top: 3px;
+}
+
+.enemy-name {
+    font-weight: bold;
+    font-size: 12px;
+    color: #FFD700;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    white-space: nowrap;
+}
+
+.enemy-level {
+    font-size: 10px;
+    color: #ccc;
+}
+
+.enemy-hp {
+    font-size: 9px;
+    color: #ff6666;
+}
+
+/* 无敌人状态 */
+.no-enemies {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+    height: 100px;
+    border: 2px dashed #666;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.2);
+}
+
+.no-enemies-text {
+    color: #999;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* 死亡动画 */
+@keyframes death-fade {
+    0% { opacity: 1; transform: scale(1) rotate(0deg); }
+    50% { opacity: 0.5; transform: scale(0.9) rotate(-5deg); }
+    100% { opacity: 0.3; transform: scale(0.8) rotate(-10deg); }
+}
+
+.character-avatar-box.death, .enemy-avatar-box.death {
+    animation: death-fade 1s ease-in-out;
+}
+
+/* 角色属性悬浮提示框 */
+.character-tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.95);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 12px;
+    min-width: 220px;
+    max-width: 300px;
+    z-index: 2000;
+    border: 2px solid #444;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.character-tooltip.show {
+    opacity: 1;
+}
+
+.tooltip-header {
+    border-bottom: 1px solid #444;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.tooltip-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #FFD700;
+    margin-bottom: 4px;
+}
+
+.tooltip-level {
+    font-size: 11px;
+    color: #aaa;
+}
+
+.tooltip-health {
+    color: #ff6666;
+    margin-bottom: 6px;
+}
+
+.tooltip-mana {
+    color: #6666ff;
+    margin-bottom: 10px;
+}
+
+.tooltip-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.tooltip-stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+}
+
+.tooltip-stat-name {
+    color: #ccc;
+}
+
+.tooltip-stat-value {
+    color: #fff;
+    font-weight: bold;
 } 

@@ -13,31 +13,24 @@ class Skills {
 
     // 初始化技能
     initializeSkills() {
-        const classData = getClassData(this.game.character.class);
-        
-        // 学习初始技能
-        if (classData.initialSkills) {
-            classData.initialSkills.forEach(skillId => {
-                this.learnSkill(skillId, 1);
-            });
-        }
+        // 新的技能树系统不需要初始技能，由角色创建时分配技能点
     }
 
     // 学习技能
     learnSkill(skillId, level = 1) {
-        const skillData = getSkillData(skillId);
+        const skillData = this.getSkillData(skillId);
         if (!skillData) {
             console.warn(`技能不存在: ${skillId}`);
             return false;
         }
 
         // 检查前置条件
-        if (!this.canLearnSkill(skillId, level)) {
+        if (!this.canLearnSkill(skillData, this.game.character)) {
             return false;
         }
 
         // 消耗技能点
-        const cost = this.getSkillCost(skillId, level);
+        const cost = skillData.cost;
         if (this.skillPoints < cost) {
             Utils.showNotification('技能点不足', 'error');
             return false;
@@ -51,98 +44,88 @@ class Skills {
             this.applyPassiveSkill(skillId, level);
         }
 
-        Utils.showNotification(`学会了 ${skillData.name} Lv.${level}`, 'success');
+        Utils.showNotification(`学会了 ${skillData.name}`, 'success');
         return true;
     }
 
-    // 升级技能
+    // 升级技能（新技能树系统中暂不支持升级）
     upgradeSkill(skillId) {
-        const currentLevel = this.learnedSkills[skillId] || 0;
-        if (currentLevel === 0) {
-            return this.learnSkill(skillId, 1);
-        }
-
-        const skillData = getSkillData(skillId);
-        if (!skillData || currentLevel >= skillData.maxLevel) {
-            Utils.showNotification('技能已达最高等级', 'error');
-            return false;
-        }
-
-        return this.learnSkill(skillId, currentLevel + 1);
+        Utils.showNotification('当前技能树系统不支持技能升级', 'info');
+        return false;
     }
 
     // 检查是否可以学习技能
-    canLearnSkill(skillId, level) {
-        const skillData = getSkillData(skillId);
-        if (!skillData) return false;
-
-        // 检查等级要求
-        if (this.game.character.level < skillData.levelRequirement) {
-            Utils.showNotification(`需要 ${skillData.levelRequirement} 级`, 'error');
-            return false;
-        }
-
+    canLearnSkill(skill, character) {
+        if (!character) return false;
+        
+        // 检查技能点
+        if (character.skillPoints < skill.cost) return false;
+        
         // 检查前置技能
-        if (skillData.prerequisites) {
-            for (let prereq of skillData.prerequisites) {
-                const prereqLevel = this.learnedSkills[prereq.skillId] || 0;
-                if (prereqLevel < prereq.level) {
-                    Utils.showNotification(`需要先学习 ${getSkillData(prereq.skillId).name}`, 'error');
-                    return false;
-                }
-            }
+        if (skill.prerequisites && skill.prerequisites.length > 0) {
+            const learnedSkills = character.learnedSkills || {};
+            return skill.prerequisites.every(prereqId => learnedSkills[prereqId] > 0);
         }
-
+        
         return true;
     }
 
-    // 获取技能消耗
-    getSkillCost(skillId, level) {
-        const skillData = getSkillData(skillId);
-        if (!skillData) return 0;
-
-        return skillData.baseCost + (level - 1) * skillData.levelCost;
+    // 获取技能数据
+    getSkillData(skillId) {
+        for (const className in SkillTreeData) {
+            const classData = SkillTreeData[className];
+            for (const branchName in classData.branches) {
+                const branchData = classData.branches[branchName];
+                for (const tierKey in branchData.skills) {
+                    const skill = branchData.skills[tierKey].find(s => s.id === skillId);
+                    if (skill) return skill;
+                }
+            }
+        }
+        return null;
     }
 
     // 应用被动技能
     applyPassiveSkill(skillId, level) {
-        const skillData = getSkillData(skillId);
+        const skillData = this.getSkillData(skillId);
         if (!skillData || skillData.type !== 'passive') return;
 
-        // 计算技能加成
-        const skillBonus = {};
-        if (skillData.effects) {
-            for (let effect of skillData.effects) {
-                const value = effect.baseValue + (level - 1) * effect.levelScale;
-                skillBonus[effect.stat] = (skillBonus[effect.stat] || 0) + value;
-            }
-        }
-
-        // 更新角色技能加成
-        this.updateCharacterSkillBonus();
+        // 应用技能效果到角色
+        this.applySkillEffects(skillData, this.game.character);
     }
 
-    // 更新角色技能加成
-    updateCharacterSkillBonus() {
-        const totalSkillBonus = {};
-
-        // 遍历所有已学习的被动技能
-        for (let [skillId, level] of Object.entries(this.learnedSkills)) {
-            const skillData = getSkillData(skillId);
-            if (skillData && skillData.type === 'passive' && skillData.effects) {
-                for (let effect of skillData.effects) {
-                    const value = effect.baseValue + (level - 1) * effect.levelScale;
-                    totalSkillBonus[effect.stat] = (totalSkillBonus[effect.stat] || 0) + value;
-                }
+    // 应用技能效果
+    applySkillEffects(skill, character) {
+        if (!skill.effects) return;
+        
+        // 根据技能效果修改角色属性
+        Object.entries(skill.effects).forEach(([effectType, value]) => {
+            switch (effectType) {
+                case 'physicalDamage':
+                    character.physicalAttack = Math.floor(character.physicalAttack * value);
+                    break;
+                case 'magicDamage':
+                    character.magicalAttack = Math.floor(character.magicalAttack * value);
+                    break;
+                case 'health':
+                    character.maxHP = Math.floor(character.maxHP * value);
+                    character.currentHP = Math.min(character.currentHP, character.maxHP);
+                    break;
+                case 'mana':
+                    character.maxMP = Math.floor(character.maxMP * value);
+                    character.currentMP = Math.min(character.currentMP, character.maxMP);
+                    break;
+                case 'attackSpeed':
+                    character.attackSpeed = Math.floor(character.attackSpeed * value);
+                    break;
+                // 更多效果类型可以在这里添加
             }
-        }
-
-        this.game.character.updateSkillBonus(totalSkillBonus);
+        });
     }
 
     // 使用主动技能
     useSkill(skillId, target = null) {
-        const skillData = getSkillData(skillId);
+        const skillData = this.getSkillData(skillId);
         if (!skillData || skillData.type !== 'active') {
             return false;
         }
@@ -168,101 +151,95 @@ class Skills {
         this.executeSkillEffect(skillId, skillLevel, target);
 
         // 设置冷却时间
-        this.setCooldown(skillId, this.getSkillCooldown(skillId, skillLevel));
+        const cooldown = skillData.effects?.cooldown || 0;
+        this.setCooldown(skillId, cooldown);
 
         return true;
     }
 
     // 执行技能效果
     executeSkillEffect(skillId, level, target) {
-        const skillData = getSkillData(skillId);
+        const skillData = this.getSkillData(skillId);
         if (!skillData || !skillData.effects) return;
 
-        for (let effect of skillData.effects) {
-            const value = effect.baseValue + (level - 1) * effect.levelScale;
-
-            switch (effect.type) {
-                case 'damage':
+        // 根据技能效果执行相应操作
+        Object.entries(skillData.effects).forEach(([effectType, value]) => {
+            switch (effectType) {
+                case 'damageMultiplier':
                     if (target) {
-                        const damage = this.calculateSkillDamage(skillId, level, effect);
+                        const baseDamage = this.game.character.physicalAttack;
+                        const damage = Math.floor(baseDamage * value);
                         target.takeDamage(damage);
                         this.game.ui.combat.addLogEntry(`使用 ${skillData.name}，造成 ${damage} 点伤害`);
                     }
                     break;
 
                 case 'heal':
-                    this.game.character.heal(value);
-                    this.game.ui.combat.addLogEntry(`使用 ${skillData.name}，恢复 ${value} 点生命值`);
+                    const healAmount = Math.floor(this.game.character.maxHP * value);
+                    this.game.character.heal(healAmount);
+                    this.game.ui.combat.addLogEntry(`使用 ${skillData.name}，恢复 ${healAmount} 点生命值`);
                     break;
 
-                case 'buff':
-                    this.game.character.addBuff({
-                        name: skillData.name,
-                        duration: effect.duration,
-                        stats: { [effect.stat]: value }
-                    });
-                    this.game.ui.combat.addLogEntry(`使用 ${skillData.name}，获得增益效果`);
+                case 'instantHeal':
+                    const instantHealAmount = Math.floor(this.game.character.maxHP * value);
+                    this.game.character.heal(instantHealAmount);
+                    this.game.ui.combat.addLogEntry(`使用 ${skillData.name}，瞬间恢复 ${instantHealAmount} 点生命值`);
                     break;
 
-                case 'debuff':
-                    if (target && target.addBuff) {
-                        target.addBuff({
-                            name: skillData.name,
-                            duration: effect.duration,
-                            stats: { [effect.stat]: -value }
-                        });
-                        this.game.ui.combat.addLogEntry(`使用 ${skillData.name}，敌人获得减益效果`);
-                    }
+                case 'attackSpeed':
+                    // 临时增益效果
+                    const duration = skillData.effects.duration || 30;
+                    this.game.character.addTempBuff('attackSpeed', value, duration);
+                    this.game.ui.combat.addLogEntry(`使用 ${skillData.name}，攻击速度提升`);
+                    break;
+
+                case 'damageBonus':
+                    // 临时增益效果
+                    const buffDuration = skillData.effects.duration || 60;
+                    this.game.character.addTempBuff('damage', value, buffDuration);
+                    this.game.ui.combat.addLogEntry(`使用 ${skillData.name}，攻击力提升`);
                     break;
             }
-        }
+        });
     }
 
     // 计算技能伤害
     calculateSkillDamage(skillId, level, effect) {
-        const skillData = getSkillData(skillId);
-        const character = this.game.character;
+        const skillData = this.getSkillData(skillId);
+        if (!skillData) return 0;
+
+        let baseDamage = 0;
         
-        let baseDamage = effect.baseValue + (level - 1) * effect.levelScale;
-        
-        // 根据技能类型应用攻击力加成
-        if (effect.damageType === 'physical') {
-            baseDamage += character.physicalAttack * (effect.attackRatio || 1);
-        } else if (effect.damageType === 'magical') {
-            baseDamage += character.magicalAttack * (effect.attackRatio || 1);
+        // 根据技能类型确定基础伤害
+        if (skillData.effects?.damageType === 'magic') {
+            baseDamage = this.game.character.magicalAttack;
+        } else {
+            baseDamage = this.game.character.physicalAttack;
         }
 
-        return Math.floor(baseDamage);
+        // 应用技能倍率
+        const multiplier = skillData.effects?.damageMultiplier || 1.0;
+        return Math.floor(baseDamage * multiplier);
     }
 
     // 获取技能法力消耗
     getSkillManaCost(skillId, level) {
-        const skillData = getSkillData(skillId);
-        if (!skillData) return 0;
-
-        return skillData.baseMana + (level - 1) * skillData.manaCostPerLevel;
+        const skillData = this.getSkillData(skillId);
+        return skillData?.effects?.manaCost || 0;
     }
 
     // 获取技能冷却时间
     getSkillCooldown(skillId, level) {
-        const skillData = getSkillData(skillId);
-        if (!skillData) return 0;
-
-        let cooldown = skillData.baseCooldown - (level - 1) * skillData.cooldownReduction;
-        
-        // 应用角色的技能冷却减少
-        const cdReduction = this.game.character.getStatPercentage('skillCooldown', 100);
-        cooldown *= (1 - cdReduction);
-
-        return Math.max(0.5, cooldown); // 最小0.5秒冷却
+        const skillData = this.getSkillData(skillId);
+        return skillData?.effects?.cooldown || 0;
     }
 
-    // 设置冷却时间
+    // 设置技能冷却
     setCooldown(skillId, duration) {
-        this.cooldowns[skillId] = Date.now() + (duration * 1000);
+        this.cooldowns[skillId] = Date.now() + duration * 1000;
     }
 
-    // 检查是否在冷却中
+    // 检查技能是否在冷却中
     isOnCooldown(skillId) {
         const cooldownEnd = this.cooldowns[skillId];
         return cooldownEnd && Date.now() < cooldownEnd;
@@ -274,95 +251,151 @@ class Skills {
         if (!cooldownEnd || Date.now() >= cooldownEnd) {
             return 0;
         }
-        return (cooldownEnd - Date.now()) / 1000;
+        return Math.ceil((cooldownEnd - Date.now()) / 1000);
     }
 
     // 更新冷却时间
     updateCooldowns(deltaTime) {
-        // 冷却时间由时间戳管理，不需要手动更新
+        // 冷却时间基于实际时间，不需要更新
     }
 
-    // 设置自动释放技能
+    // 设置自动技能
     setAutoSkill(skillId, enabled) {
-        if (enabled) {
-            if (!this.activeSkills.includes(skillId)) {
-                this.activeSkills.push(skillId);
-            }
-        } else {
-            const index = this.activeSkills.indexOf(skillId);
-            if (index !== -1) {
-                this.activeSkills.splice(index, 1);
-            }
+        if (!this.game.character.autoCastSkills) {
+            this.game.character.autoCastSkills = [];
+        }
+
+        const index = this.game.character.autoCastSkills.indexOf(skillId);
+        
+        if (enabled && index === -1) {
+            this.game.character.autoCastSkills.push(skillId);
+        } else if (!enabled && index !== -1) {
+            this.game.character.autoCastSkills.splice(index, 1);
         }
     }
 
-    // 自动释放技能
+    // 自动使用技能
     autoUseSkills(target) {
-        for (let skillId of this.activeSkills) {
-            if (this.useSkill(skillId, target)) {
-                break; // 每次只释放一个技能
+        const autoCastSkills = this.getAutoCastSkills();
+        
+        for (const skill of autoCastSkills) {
+            if (skill.type === 'active' && !this.isOnCooldown(skill.id)) {
+                this.useSkill(skill.id, target);
+                break; // 一次只使用一个技能
             }
         }
     }
 
     // 获取技能树数据
     getSkillTreeData() {
-        const classData = getClassData(this.game.character.class);
-        return classData.skillTree || [];
+        return SkillTreeData;
     }
 
-    // 获取已学习技能列表
+    // 获取已学习的技能
     getLearnedSkills() {
-        return Object.keys(this.learnedSkills).map(skillId => ({
-            id: skillId,
-            level: this.learnedSkills[skillId],
-            data: getSkillData(skillId)
-        }));
+        return this.learnedSkills;
+    }
+
+    // 获取自动施法技能列表
+    getAutoCastSkills() {
+        if (!this.autoCastSkills) this.autoCastSkills = [];
+        return this.autoCastSkills.map(skillId => this.getSkillData(skillId)).filter(Boolean);
+    }
+
+    // 设置技能自动施法
+    setAutocast(skillId, enabled) {
+        if (!this.autoCastSkills) this.autoCastSkills = [];
+        
+        const index = this.autoCastSkills.indexOf(skillId);
+        if (enabled && index === -1) {
+            this.autoCastSkills.push(skillId);
+        } else if (!enabled && index !== -1) {
+            this.autoCastSkills.splice(index, 1);
+        }
+    }
+
+    // 检查技能是否设置为自动施法
+    isAutocast(skillId) {
+        if (!this.autoCastSkills) this.autoCastSkills = [];
+        return this.autoCastSkills.includes(skillId);
+    }
+
+    // 重置所有技能
+    resetAllSkills() {
+        this.learnedSkills = {};
+        this.autoCastSkills = [];
+        this.cooldowns = {};
+        
+        // 重新计算角色属性
+        if (this.game?.character) {
+            this.game.character.calculateFinalStats();
+        }
     }
 
     // 添加技能点
     addSkillPoints(amount) {
         this.skillPoints += amount;
-        Utils.showNotification(`获得 ${amount} 技能点`, 'info');
+        if (this.game.character) {
+            this.game.character.skillPoints = this.skillPoints;
+        }
     }
 
     // 重置技能
     resetSkills() {
-        // 返还技能点
-        let totalRefund = 0;
-        for (let [skillId, level] of Object.entries(this.learnedSkills)) {
-            for (let i = 1; i <= level; i++) {
-                totalRefund += this.getSkillCost(skillId, i);
+        // 计算已使用的技能点
+        let usedPoints = 0;
+        for (const skillId in this.learnedSkills) {
+            const skill = this.getSkillData(skillId);
+            if (skill) {
+                usedPoints += skill.cost;
             }
         }
 
-        this.skillPoints += totalRefund;
+        // 重置技能数据
         this.learnedSkills = {};
         this.activeSkills = [];
         this.cooldowns = {};
+        
+        // 返还技能点
+        this.skillPoints += usedPoints;
+        if (this.game.character) {
+            this.game.character.skillPoints = this.skillPoints;
+            this.game.character.learnedSkills = {};
+            this.game.character.autoCastSkills = [];
+        }
 
-        // 重新初始化
-        this.initializeSkills();
-        this.updateCharacterSkillBonus();
+        // 重新计算角色属性
+        if (this.game.character?.calculateStats) {
+            this.game.character.calculateStats();
+        }
 
-        Utils.showNotification(`技能重置完成，返还 ${totalRefund} 技能点`, 'success');
+        Utils.showNotification('技能已重置', 'info');
     }
 
-    // 获取技能数据
+    // 获取技能数据（用于存档）
     getSkillsData() {
         return {
             learnedSkills: this.learnedSkills,
-            activeSkills: this.activeSkills,
-            skillPoints: this.skillPoints
+            skillPoints: this.skillPoints,
+            autoCastSkills: this.game.character?.autoCastSkills || [],
+            skillUI: this.game.skillUI ? this.game.skillUI.saveSkillData() : null
         };
     }
 
-    // 加载技能数据
+    // 加载技能数据（用于读档）
     loadSkillsData(data) {
-        if (data.learnedSkills) this.learnedSkills = data.learnedSkills;
-        if (data.activeSkills) this.activeSkills = data.activeSkills;
-        if (data.skillPoints !== undefined) this.skillPoints = data.skillPoints;
+        this.learnedSkills = data.learnedSkills || {};
+        this.skillPoints = data.skillPoints || 0;
         
-        this.updateCharacterSkillBonus();
+        if (this.game.character) {
+            this.game.character.learnedSkills = this.learnedSkills;
+            this.game.character.skillPoints = this.skillPoints;
+            this.game.character.autoCastSkills = data.autoCastSkills || [];
+        }
+
+        // 重新应用所有被动技能效果
+        for (const skillId in this.learnedSkills) {
+            this.applyPassiveSkill(skillId, this.learnedSkills[skillId]);
+        }
     }
 } 

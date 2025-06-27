@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>清理存储</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #cc3333;
+        }
+        .info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>清理游戏存储</h1>
+        
+        <div class="info">
+            <p>如果游戏出现加载错误，可能是因为存储数据损坏。点击下面的按钮清理所有游戏存储数据：</p>
+        </div>
+        
+        <button onclick="clearGameStorage()">清理游戏存储</button>
+        <button onclick="showStorageInfo()">显示存储信息</button>
+        
+        <div id="result"></div>
+        
+        <div class="info">
+            <p><strong>注意：</strong>清理存储会删除所有游戏进度！</p>
+            <p><a href="index.html">返回游戏</a></p>
+        </div>
+    </div>
+
+    <script>
+        function clearGameStorage() {
+            try {
+                // 清理游戏相关的localStorage
+                const keys = Object.keys(localStorage);
+                const gameKeys = keys.filter(key => key.includes('idleGame') || key.includes('game'));
+                
+                gameKeys.forEach(key => {
+                    localStorage.removeItem(key);
+                });
+                
+                // 也清理所有localStorage以防万一
+                localStorage.clear();
+                
+                document.getElementById('result').innerHTML = 
+                    '<div class="success">存储已清理完成！现在可以返回游戏了。</div>';
+                    
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '<div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px;">清理失败: ' + error.message + '</div>';
+            }
+        }
+        
+        function showStorageInfo() {
+            try {
+                const keys = Object.keys(localStorage);
+                const gameKeys = keys.filter(key => key.includes('idleGame') || key.includes('game'));
+                
+                let info = '<div class="info">';
+                info += '<h3>当前存储信息：</h3>';
+                info += '<p>总键数量: ' + keys.length + '</p>';
+                info += '<p>游戏相关键数量: ' + gameKeys.length + '</p>';
+                
+                if (gameKeys.length > 0) {
+                    info += '<p>游戏键列表:</p><ul>';
+                    gameKeys.forEach(key => {
+                        info += '<li>' + key + '</li>';
+                    });
+                    info += '</ul>';
+                }
+                
+                info += '</div>';
+                document.getElementById('result').innerHTML = info;
+                
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '<div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px;">获取信息失败: ' + error.message + '</div>';
+            }
+        }
+    </script>
+</body>
+</html> 

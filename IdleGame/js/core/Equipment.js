@@ -42,6 +42,14 @@ class Equipment {
         // 更新角色属性
         this.updateCharacterStats();
         
+        // 更新所有相关UI
+        if (this.game.ui.equipment) {
+            this.game.ui.equipment.update();
+        }
+        if (this.game.ui.character) {
+            this.game.ui.character.update();
+        }
+        
         Utils.showNotification(`装备了 ${item.name}`, 'success');
         return true;
     }
@@ -59,6 +67,14 @@ class Equipment {
         this.equipped[slot] = null;
         this.addToInventory(item);
         this.updateCharacterStats();
+        
+        // 更新所有相关UI
+        if (this.game.ui.equipment) {
+            this.game.ui.equipment.update();
+        }
+        if (this.game.ui.character) {
+            this.game.ui.character.update();
+        }
         
         Utils.showNotification(`卸下了 ${item.name}`, 'info');
         return true;
@@ -232,14 +248,19 @@ class Equipment {
         const weaponStats = ['physicalAttack', 'magicalAttack', 'critRate', 'critDamage'];
         const armorStats = ['health', 'defense', 'magicResist'];
         const accessoryStats = ['physicalAttack', 'magicalAttack', 'health', 'critRate', 'critDamage', 'hitRate', 'dodgeRate'];
+        const attributeStats = ['strength', 'agility', 'intelligence', 'spirit', 'stamina'];
         
+        let baseStats = [];
         if (['lefthand', 'righthand'].includes(slot)) {
-            return weaponStats;
+            baseStats = weaponStats;
         } else if (['helmet', 'chest', 'pants', 'boots', 'gloves', 'shoulder', 'cloak'].includes(slot)) {
-            return [...armorStats, ...accessoryStats];
+            baseStats = [...armorStats, ...accessoryStats];
         } else {
-            return accessoryStats;
+            baseStats = accessoryStats;
         }
+        
+        // 所有装备都可能随机获得五维属性
+        return [...baseStats, ...attributeStats];
     }
 
     // 获取品质倍数
@@ -278,7 +299,13 @@ class Equipment {
             critDamage: 10 + level * 1,
             hitRate: 5 + level * 0.5,
             dodgeRate: 5 + level * 0.5,
-            skillCooldown: level * 0.5
+            skillCooldown: level * 0.5,
+            // 五维属性
+            strength: 1 + level * 0.3,
+            agility: 1 + level * 0.3,
+            intelligence: 1 + level * 0.3,
+            spirit: 1 + level * 0.3,
+            stamina: 1 + level * 0.3
         };
         return baseValues[stat] || level;
     }
@@ -311,5 +338,19 @@ class Equipment {
         if (data.equipped) this.equipped = data.equipped;
         if (data.inventory) this.inventory = data.inventory;
         this.updateCharacterStats();
+    }
+
+    // 重置装备系统
+    reset() {
+        // 清空所有装备槽
+        this.initializeSlots();
+        
+        // 清空背包
+        this.inventory = [];
+        
+        // 更新角色属性
+        this.updateCharacterStats();
+        
+        console.log('装备系统已重置');
     }
 } 

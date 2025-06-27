@@ -1,28 +1,29 @@
 // 游戏数值计算工具类
 class Calculator {
     // 百分比属性计算公式 (防御、暴击率等)
-    static calculatePercentage(value, baseValue) {
+    // 基准值固定为100，即100时为50%
+    static calculatePercentage(value, baseValue = 100) {
         return value / (value + baseValue);
     }
 
     // 获取防御基准值
     static getDefenseBase(level = 1) {
-        return 100 + level * 10;
+        return 100;
     }
 
     // 获取暴击基准值
     static getCritBase(level = 1) {
-        return 200 + level * 5;
+        return 100;
     }
 
     // 获取命中基准值
     static getHitBase(level = 1) {
-        return 150 + level * 8;
+        return 100;
     }
 
     // 获取闪避基准值
     static getDodgeBase(level = 1) {
-        return 180 + level * 7;
+        return 100;
     }
 
     // 伤害计算
@@ -161,7 +162,7 @@ class Calculator {
 
     // 技能冷却时间计算
     static calculateSkillCooldown(baseCooldown, cooldownReduction = 0) {
-        let reductionPercent = this.calculatePercentage(cooldownReduction, 100);
+        let reductionPercent = this.calculatePercentage(cooldownReduction);
         return Math.max(0.5, baseCooldown * (1 - reductionPercent));
     }
 

@@ -1,33 +1,113 @@
 /* 装备页面样式 */
 .equipment-layout {
     display: flex;
+    flex-direction: column;
     gap: 20px;
     height: 100%;
     max-width: 1400px;
     margin: 0 auto;
 }
 
-/* 装备槽位区域 */
+/* 重置背包按钮样式，防止被其他样式影响 */
+.inventory-tabs button {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* 装备槽位区域 - 移到上方 */
 .equipment-slots {
-    flex: 0 0 400px;
+    flex: 0 0 auto;
     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
     border-radius: 12px;
     padding: 20px;
     border: 2px solid #475569;
+    min-height: 350px;
 }
 
+/* 人形装备布局 */
 .equipment-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 8px;
     height: 100%;
-    max-height: 400px;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+/* 人形布局定位 */
+.equipment-slot[data-slot="helmet"] {
+    grid-column: 3;
+    grid-row: 1;
+}
+
+.equipment-slot[data-slot="chest"] {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+.equipment-slot[data-slot="gloves"] {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.equipment-slot[data-slot="shoulder"] {
+    grid-column: 4;
+    grid-row: 2;
+}
+
+.equipment-slot[data-slot="lefthand"] {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+.equipment-slot[data-slot="belt"] {
+    grid-column: 3;
+    grid-row: 3;
+}
+
+.equipment-slot[data-slot="righthand"] {
+    grid-column: 4;
+    grid-row: 3;
+}
+
+.equipment-slot[data-slot="pants"] {
+    grid-column: 3;
+    grid-row: 4;
+}
+
+.equipment-slot[data-slot="boots"] {
+    grid-column: 3;
+    grid-row: 5;
+}
+
+.equipment-slot[data-slot="necklace"] {
+    grid-column: 5;
+    grid-row: 1;
+}
+
+.equipment-slot[data-slot="earring"] {
+    grid-column: 5;
+    grid-row: 2;
+}
+
+.equipment-slot[data-slot="ring1"] {
+    grid-column: 5;
+    grid-row: 3;
+}
+
+.equipment-slot[data-slot="ring2"] {
+    grid-column: 5;
+    grid-row: 4;
 }
 
 .equipment-slot {
-    background: #374151;
-    border: 2px solid #4b5563;
+    background: rgba(55, 65, 81, 0.3);
+    border: 2px solid rgba(75, 85, 99, 0.5);
     border-radius: 8px;
     display: flex;
     flex-direction: column;
@@ -36,30 +116,66 @@
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
-    min-height: 80px;
+    min-height: 60px;
+    backdrop-filter: blur(2px);
+}
+
+.equipment-slot::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 6px;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+}
+
+.equipment-slot.equipped::before {
+    opacity: 0;
 }
 
 .equipment-slot:hover {
     border-color: #3b82f6;
-    background: #475569;
+    background: rgba(71, 85, 105, 0.6);
     transform: translateY(-2px);
+}
+
+.equipment-slot:hover::before {
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .equipment-slot.equipped {
     border-color: #10b981;
-    background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+    background: linear-gradient(135deg, rgba(6, 95, 70, 0.8) 0%, rgba(4, 120, 87, 0.8) 100%);
+    backdrop-filter: blur(4px);
 }
 
 .slot-icon {
-    font-size: 24px;
-    margin-bottom: 4px;
+    font-size: 20px;
+    margin-bottom: 2px;
+    opacity: 0.6;
+    position: relative;
+    z-index: 2;
+}
+
+.equipment-slot.equipped .slot-icon {
+    opacity: 1;
 }
 
 .slot-name {
-    font-size: 10px;
-    color: #94a3b8;
+    font-size: 9px;
+    color: rgba(148, 163, 184, 0.7);
     text-align: center;
     line-height: 1.2;
+    position: relative;
+    z-index: 2;
+}
+
+.equipment-slot.equipped .slot-name {
+    color: #94a3b8;
 }
 
 .equipment-item {
@@ -80,13 +196,13 @@
 .equipment-level {
     background: rgba(0, 0, 0, 0.8);
     color: #fbbf24;
-    font-size: 10px;
+    font-size: 8px;
     font-weight: bold;
-    padding: 2px 4px;
+    padding: 1px 3px;
     border-radius: 3px;
 }
 
-/* 背包区域 */
+/* 背包区域 - 移到下方 */
 .inventory {
     flex: 1;
     background: #1e293b;
@@ -95,6 +211,8 @@
     border: 2px solid #334155;
     display: flex;
     flex-direction: column;
+    min-height: 0; /* 允许flex收缩 */
+    height: 100%; /* 填满可用高度 */
 }
 
 .inventory-header {
@@ -111,26 +229,30 @@
     gap: 10px;
 }
 
-.tab-btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    background: #374151;
-    color: #d1d5db;
-    font-size: 14px;
+.inventory-tabs .tab-btn {
+    padding: 8px 16px !important;
+    border: none !important;
+    border-radius: 6px !important;
+    background: #374151 !important;
+    color: #d1d5db !important;
+    font-size: 14px !important;
     cursor: pointer;
     transition: all 0.3s ease;
-    border: 2px solid transparent;
+    border: 2px solid transparent !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: auto !important;
+    min-height: auto !important;
 }
 
-.tab-btn:hover {
-    background: #4b5563;
+.inventory-tabs .tab-btn:hover {
+    background: #4b5563 !important;
 }
 
-.tab-btn.active {
-    background: #3b82f6;
-    color: white;
-    border-color: #2563eb;
+.inventory-tabs .tab-btn.active {
+    background: #3b82f6 !important;
+    color: white !important;
+    border-color: #2563eb !important;
 }
 
 .inventory-sort select {
@@ -148,14 +270,17 @@
     border-color: #3b82f6;
 }
 
-/* 背包网格 */
+/* 背包网格 - 垂直填充 */
 .inventory-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(10, 1fr);
+    grid-auto-rows: 60px;
+    gap: 6px;
     flex: 1;
     overflow-y: auto;
     padding-right: 10px;
+    min-height: 0; /* 允许flex收缩 */
+    height: 100%; /* 填满可用高度 */
 }
 
 .inventory-item {
@@ -164,12 +289,14 @@
     border: 2px solid #4b5563;
     border-radius: 8px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
-    font-size: 20px;
+    font-size: 16px;
+    padding: 4px;
 }
 
 .inventory-item:hover {
@@ -187,6 +314,94 @@
     border-color: #4b5563;
     transform: none;
     box-shadow: none;
+}
+
+/* 拖拽相关样式 */
+.inventory-item[draggable="true"] {
+    cursor: grab;
+}
+
+.inventory-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+    transform: rotate(5deg);
+    z-index: 1000;
+}
+
+.equipment-slot.drag-over {
+    border-color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.2) !important;
+    transform: scale(1.05);
+}
+
+.equipment-slot.drag-invalid {
+    border-color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.2) !important;
+}
+
+/* 装备悬浮提示 */
+.equipment-tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.95);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    min-width: 200px;
+    max-width: 300px;
+    z-index: 1000;
+    border: 2px solid #374151;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+.tooltip-title {
+    font-weight: bold;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.tooltip-level, .tooltip-quality, .tooltip-slot {
+    margin-bottom: 4px;
+    color: #d1d5db;
+}
+
+.tooltip-stats {
+    margin-top: 8px;
+    margin-bottom: 4px;
+    font-weight: bold;
+    color: #10b981;
+}
+
+.tooltip-stat {
+    margin-left: 8px;
+    color: #34d399;
+    font-size: 11px;
+}
+
+/* 背包物品样式优化 */
+.inventory-item .item-icon {
+    font-size: 18px;
+    margin-bottom: 1px;
+    flex-shrink: 0;
+}
+
+.inventory-item .item-name {
+    font-size: 8px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 1px;
+    width: 100%;
+    line-height: 1;
+}
+
+.inventory-item .item-level {
+    font-size: 7px;
+    text-align: center;
+    color: #9ca3af;
+    line-height: 1;
 }
 
 /* 装备品质颜色 */
@@ -307,27 +522,47 @@
 /* 响应式设计 */
 @media (max-width: 1024px) {
     .equipment-layout {
-        flex-direction: column;
         gap: 15px;
     }
     
     .equipment-slots {
-        flex: none;
+        min-height: 300px;
     }
     
     .equipment-grid {
-        max-height: 300px;
+        max-width: 350px;
+    }
+    
+    .inventory-grid {
+        max-height: 180px;
     }
 }
 
 @media (max-width: 768px) {
     .equipment-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
+        max-width: 300px;
+        gap: 6px;
+    }
+    
+    .equipment-slot {
+        min-height: 50px;
+    }
+    
+    .slot-icon {
+        font-size: 16px;
+    }
+    
+    .slot-name {
+        font-size: 8px;
     }
     
     .inventory-grid {
-        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+        max-height: 150px;
+    }
+    
+    .inventory-item {
+        font-size: 14px;
     }
     
     .inventory-header {

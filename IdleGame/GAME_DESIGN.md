@@ -1,248 +1,560 @@
-# 放置挂机战斗游戏设计文档
+# 放置挂机战斗游戏 - AI开发设计文档
 
 ## 项目概述
 一个基于Web的放置挂机战斗游戏，玩家通过自动战斗、装备收集、角色成长来推进游戏进度。
+- **技术栈**: 纯前端JavaScript (ES6+), HTML5, CSS3
+- **部署方式**: 通过SFTP实时更新到 http://yuohira.com/IdleGame/,不要本地运行
+- **数据存储**: localStorage本地存储
+- **架构模式**: 模块化组件系统
 
-## 核心系统设计
+## AI开发指导原则
+
+### 1. 代码组织原则
+- **单一职责**: 每个类只负责一个核心功能
+- **数据驱动**: 所有游戏配置通过JSON数据文件管理
+- **事件驱动**: 使用观察者模式处理系统间通信
+- **状态管理**: 集中式状态管理，便于存档和同步
+
+### 2. 开发优先级
+```
+第一优先级: 核心战斗循环 (自动战斗、伤害计算、升级)
+第二优先级: 装备系统 (随机生成、装备穿戴、属性加成)
+第三优先级: 技能系统 (技能树、自动释放、职业差异)
+第四优先级: UI优化和数据平衡
+```
+
+### 3. 性能要求
+- 游戏循环: 100ms (10 FPS)
+- UI更新: 节流更新，避免频繁DOM操作
+- 数据计算: 缓存计算结果，避免重复计算
+- 存档频率: 30秒自动存档
+
+## 核心系统架构
+
+### 1. 系统依赖关系
+```
+Game (主控制器)
+├── Character (角色系统)
+├── Combat (战斗系统) 
+├── Equipment (装备系统)
+├── Skills (技能系统)
+└── UI Controllers
+    ├── CharacterUI
+    ├── CombatUI  
+    ├── EquipmentUI
+    └── SkillUI
+```
+
+### 2. 数据流架构
+```
+用户操作 → UI事件 → Game控制器 → 核心系统 → 数据更新 → UI刷新
+```
+
+## 详细系统设计
 
 ### 1. 角色属性系统
 
-#### 1.1 基础属性
-- **物理攻击力 (PhysicalAttack)**: 物理技能和普攻的基础伤害
-- **魔法攻击力 (MagicalAttack)**: 魔法技能的基础伤害
-- **血量 (Health)**: 角色生命值
-- **防御值 (Defense)**: 物理伤害减免
-- **魔法抗性 (MagicResist)**: 魔法伤害减免
-
-#### 1.2 战斗属性
-- **暴击率 (CritRate)**: 触发暴击的概率
-- **暴击伤害 (CritDamage)**: 暴击时的伤害倍数
-- **命中率 (HitRate)**: 攻击命中的概率
-- **闪避率 (DodgeRate)**: 闪避攻击的概率
-- **技能冷却 (SkillCooldown)**: 技能冷却时间减少
-
-#### 1.3 减伤公式系统
-```
-减伤率 = 属性值 / (属性值 + 基准值)
-```
-- **基准值**: 随等级和难度动态调整的平衡参数
-- **应用范围**: 防御减伤、魔抗减伤、暴击率、命中率、闪避率、技能冷却等
-- **显示方式**: 
-  - 默认显示具体数值
-  - 鼠标悬停显示百分比和效果说明
-
-### 2. 职业系统
-
-#### 2.1 职业设计
-- **战士 (Warrior)**: 高血量高防御，物理攻击为主
-- **法师 (Mage)**: 高魔法攻击，技能冷却快
-- **游侠 (Ranger)**: 高命中高暴击，平衡型
-- **刺客 (Assassin)**: 极高暴击伤害，高闪避
-
-#### 2.2 技能系统
-- **技能树**: 每个职业独有的技能树
-- **技能配置**: 每个技能可设置自动释放开关
-- **技能类型**:
-  - 被动技能: 永久属性加成
-  - 主动技能: 自动释放的特殊攻击
-  - 光环技能: 持续性效果
-
-### 3. 装备系统
-
-#### 3.1 装备部位 (13个)
-- **武器**: 左手武器、右手武器
-- **防具**: 头盔、上衣、裤子、肩部护甲、手套、帽子、鞋子、披风
-- **饰品**: 项链、戒指(2个)、耳环
-
-#### 3.2 装备属性系统
-- **随机属性池**: 不同部位可roll不同的属性
-- **属性roll机制**:
-  - 每个属性有roll占比
-  - 总占比 = 100%
-  - 装备等级/等阶影响数值范围
-- **装备品质**:
-  - 普通 (白色)
-  - 魔法 (蓝色) 
-  - 稀有 (黄色)
-  - 史诗 (紫色)
-  - 传说 (橙色)
-
-#### 3.3 装备评估系统
-- **总属性价值**: 根据所有属性计算装备的综合价值
-- **属性权重**: 不同属性有不同的价值权重
-
-### 4. 角色成长系统
-
-#### 4.1 等级系统
-- **升级奖励**: 每级获得
-  - 全属性 +1
-  - 5点自由属性点
-- **自由属性分配**: 可分配到任意基础属性
-
-#### 4.2 经验系统
-- **经验来源**: 击杀怪物获得
-- **经验公式**: 随怪物等级和玩家等级差异调整
-
-### 5. 战斗系统
-
-#### 5.1 自动战斗机制
-- **攻击循环**: 角色自动攻击当前目标
-- **攻击速度**: 基于角色属性计算攻击间隔
-- **伤害计算**:
-  ```
-  最终伤害 = (基础伤害 - 防御减伤) × 暴击倍数 × 其他修正
-  ```
-
-#### 5.2 技能释放
-- **自动释放**: 根据玩家设置自动释放技能
-- **冷却管理**: 技能冷却时间管理
-- **优先级**: 技能释放优先级系统
-
-### 6. 怪物与关卡系统
-
-#### 6.1 怪物设计
-- **属性缩放**: 怪物属性随关卡等级缩放
-- **怪物类型**: 不同类型怪物有不同的属性倾向
-- **Boss机制**: 每10-20关有Boss怪物
-
-#### 6.2 关卡进度
-- **线性推进**: 击败当前怪物后自动进入下一个
-- **难度递增**: 怪物属性随关卡递增
-- **奖励递增**: 经验和金币奖励随关卡递增
-
-### 7. 奖励系统
-
-#### 7.1 战斗奖励
-- **金币**: 购买装备和服务
-- **经验值**: 角色升级
-- **装备掉落**: 随机装备掉落
-
-#### 7.2 离线收益
-- **离线计算**: 根据离线时间计算收益
-- **收益上限**: 设置离线收益上限防止无限积累
-- **离线报告**: 显示离线期间的进度和收益
-
-### 8. 界面系统
-
-#### 8.1 主界面布局
-- **角色面板**: 显示角色属性和装备
-- **战斗区域**: 显示当前战斗状态
-- **技能面板**: 技能配置和升级
-- **背包系统**: 装备管理
-
-#### 8.2 数据显示
-- **实时数据**: DPS、经验/小时等统计
-- **详细信息**: 鼠标悬停显示详细计算
-- **战斗日志**: 显示战斗过程和伤害数据
-
-## 技术实现
-
-### 文件结构
-```
-IdleGame/
-├── index.html          # 主页面
-├── pages/
-├── css/
-│   ├── main.css        # 主样式
-│   ├── character.css   # 角色界面样式
-│   ├── combat.css      # 战斗界面样式
-│   └── equipment.css   # 装备界面样式
-├── js/
-│   ├── core/
-│   │   ├── Game.js     # 游戏主控制器
-│   │   ├── Character.js # 角色系统
-│   │   ├── Combat.js   # 战斗系统
-│   │   ├── Equipment.js # 装备系统
-│   │   └── Skills.js   # 技能系统
-│   ├── data/
-│   │   ├── classes.js  # 职业数据
-│   │   ├── skills.js   # 技能数据
-│   │   ├── equipment.js # 装备数据
-│   │   └── monsters.js # 怪物数据
-│   ├── ui/
-│   │   ├── CharacterUI.js # 角色界面
-│   │   ├── CombatUI.js    # 战斗界面
-│   │   ├── EquipmentUI.js # 装备界面
-│   │   └── SkillUI.js     # 技能界面
-│   └── utils/
-│       ├── Calculator.js  # 数值计算工具
-│       ├── Storage.js     # 存档系统
-│       └── Utils.js       # 通用工具
-└── data/
-    ├── classes.json    # 职业配置
-    ├── skills.json     # 技能配置
-    ├── equipment.json  # 装备配置
-    └── monsters.json   # 怪物配置
-```
-
-### UI
-index主页只负责拼接各个子界面,每个功能,如角色,背包,技能都做成子界面由index调用
-
-左边暂时只留下角色,背包,技能右边一直显示战斗页面,占屏幕总比例的一半
-角色页面用来加点,查看属性和信息
-背包页面的上面是装备栏,每个装备栏按照人形排布,下面是背包,背包分为装备和材料
-装备只分类别和数值,没有名称
-技能顶部是职业,分别是战士,法师,坦克,牧师,刺客,射手
-底下是每个职业对应的技能树,技能分为被动和主动和光环,
-每个职业现在有一个技能就行,每次升级给一个技能点
-战斗页面分为上部分占一半,是战斗表现页面,左边是玩家角色列表,每个角色一个圆角方块头像,头像内部显示血条和蓝条,右边是怪物列表,也一样
-中间是技能栏,最多八个技能框,点击可以展开一个选择列表切换技能
-技能栏下边是战斗日志
-
-### 核心算法
-
-#### 属性计算公式
+#### 1.1 数据结构定义
 ```javascript
-// 百分比属性计算 (防御、暴击率等)
-function calculatePercentage(value, baseValue) {
-    return value / (value + baseValue);
+// Character类核心属性
+class Character {
+    constructor(name, characterClass) {
+        this.name = string;           // 角色名称
+        this.class = string;          // 职业类型
+        this.level = number;          // 当前等级
+        this.exp = number;            // 当前经验值
+        this.freePoints = number;     // 自由属性点
+        
+        // 基础属性 (可分配点数影响)
+        this.baseStats = {
+            physicalAttack: number,   // 物理攻击力
+            magicalAttack: number,    // 魔法攻击力  
+            health: number,           // 生命值上限
+            defense: number,          // 物理防御
+            magicResist: number,      // 魔法抗性
+            critRate: number,         // 暴击率
+            critDamage: number,       // 暴击伤害
+            hitRate: number,          // 命中率
+            dodgeRate: number,        // 闪避率
+            skillCooldown: number     // 技能冷却减少
+        };
+        
+        // 当前状态
+        this.currentHP = number;      // 当前生命值
+        this.currentMP = number;      // 当前法力值
+        
+        // 加成属性
+        this.equipmentBonus = {};     // 装备加成
+        this.skillBonus = {};         // 技能加成
+        this.buffs = [];              // 临时增益效果
+    }
+}
+```
+
+#### 1.2 属性计算公式
+```javascript
+// 最终属性 = 基础属性 + 等级成长 + 装备加成 + 技能加成 + Buff加成
+finalStat = baseStat + levelGrowth + equipmentBonus + skillBonus + buffBonus;
+
+// 百分比属性计算 (用于防御、暴击率等)
+percentage = value / (value + baseValue);
+// baseValue根据游戏进度动态调整
+```
+
+#### 1.3 关键方法接口
+```javascript
+// 必须实现的方法
+calculateFinalStats()           // 重新计算所有最终属性
+gainExp(amount)                 // 获得经验值，自动处理升级
+allocatePoint(statName)         // 分配自由属性点
+takeDamage(damage)              // 受到伤害，返回是否死亡
+addBuff(buff)                   // 添加临时增益效果
+updateBuffs()                   // 更新Buff状态，移除过期效果
+```
+
+### 2. 战斗系统
+
+#### 2.1 数据结构定义
+```javascript
+class Combat {
+    constructor(game) {
+        this.game = game;
+        this.currentEnemy = null;     // 当前敌人
+        this.battleState = 'idle';    // 'idle', 'fighting', 'victory', 'defeat'
+        this.lastAttackTime = 0;      // 上次攻击时间
+        this.attackInterval = 1000;   // 攻击间隔(ms)
+        this.battleLog = [];          // 战斗日志
+        this.autoSkills = [];         // 自动释放技能列表
+    }
 }
 
-// 伤害计算
+// 敌人数据结构
+class Enemy {
+    constructor(data) {
+        this.name = string;
+        this.level = number;
+        this.maxHP = number;
+        this.currentHP = number;
+        this.stats = {
+            physicalAttack: number,
+            magicalAttack: number,
+            defense: number,
+            magicResist: number,
+            // ... 其他属性
+        };
+        this.rewards = {
+            exp: number,
+            gold: number,
+            dropTable: []             // 掉落表
+        };
+    }
+}
+```
+
+#### 2.2 伤害计算公式
+```javascript
+// 基础伤害计算
 function calculateDamage(attacker, defender, skill) {
-    let baseDamage = skill.isPhysical ? attacker.physicalAttack : attacker.magicalAttack;
-    let defense = skill.isPhysical ? defender.defense : defender.magicResist;
-    let defenseReduction = calculatePercentage(defense, getDefenseBase());
+    // 1. 获取基础攻击力
+    let baseDamage = skill.isPhysical ? 
+        attacker.physicalAttack : attacker.magicalAttack;
     
+    // 2. 技能倍率
+    baseDamage *= (skill.damageMultiplier || 1.0);
+    
+    // 3. 防御减伤
+    let defense = skill.isPhysical ? 
+        defender.defense : defender.magicResist;
+    let defenseReduction = defense / (defense + getDefenseBase());
+    
+    // 4. 应用减伤
     let damage = baseDamage * (1 - defenseReduction);
     
-    // 暴击计算
-    if (Math.random() < calculatePercentage(attacker.critRate, getCritBase())) {
+    // 5. 暴击计算
+    let critChance = attacker.critRate / (attacker.critRate + getCritBase());
+    if (Math.random() < critChance) {
         damage *= (1 + attacker.critDamage / 100);
+    }
+    
+    // 6. 命中检测
+    let hitChance = (attacker.hitRate + 100) / 
+        (attacker.hitRate + 100 + defender.dodgeRate);
+    if (Math.random() > hitChance) {
+        damage = 0; // 未命中
     }
     
     return Math.max(1, Math.floor(damage));
 }
 ```
 
-## 开发优先级
+#### 2.3 战斗流程
+```javascript
+// 战斗更新循环
+update(deltaTime) {
+    if (this.battleState !== 'fighting') return;
+    
+    // 1. 检查攻击间隔
+    if (Date.now() - this.lastAttackTime >= this.attackInterval) {
+        // 2. 玩家攻击
+        this.playerAttack();
+        
+        // 3. 敌人攻击 (如果存活)
+        if (this.currentEnemy.isAlive()) {
+            this.enemyAttack();
+        }
+        
+        // 4. 检查战斗结果
+        this.checkBattleResult();
+        
+        this.lastAttackTime = Date.now();
+    }
+    
+    // 5. 更新自动技能
+    this.updateAutoSkills(deltaTime);
+}
+```
 
-### 第一阶段 - 核心系统
-1. 基础角色属性系统
-2. 简单的自动战斗
-3. 基础装备系统
-4. 等级和经验系统
+### 3. 装备系统
 
-### 第二阶段 - 扩展功能
-1. 完整的装备随机属性系统
-2. 技能系统和职业差异
-3. 更复杂的怪物和关卡系统
-4. 离线收益系统
+#### 3.1 装备数据结构
+```javascript
+class Equipment {
+    constructor(data) {
+        this.id = string;             // 唯一标识
+        this.slot = string;           // 装备部位
+        this.level = number;          // 装备等级
+        this.quality = string;        // 品质: 'common', 'magic', 'rare', 'epic', 'legendary'
+        this.stats = {};              // 属性加成
+        this.requirements = {         // 装备需求
+            level: number,
+            class: string[]
+        };
+    }
+}
 
-### 第三阶段 - 优化和完善
-1. 界面优化和动画效果
-2. 数据平衡调整
-3. 更多装备和技能内容
-4. 存档和设置系统
+// 装备部位定义
+const EQUIPMENT_SLOTS = {
+    'helmet': '头盔',     'necklace': '项链',   'shoulder': '肩甲',
+    'lefthand': '左手',   'chest': '胸甲',      'righthand': '右手', 
+    'gloves': '手套',     'belt': '腰带',       'ring1': '戒指1',
+    'pants': '护腿',      'ring2': '戒指2',     'boots': '靴子',
+    'earring': '耳环'
+};
+```
 
-## 平衡性考虑
+#### 3.2 装备生成算法
+```javascript
+// 随机装备生成
+function generateRandomEquipment(level, slot) {
+    // 1. 确定品质
+    let quality = rollQuality(level);
+    
+    // 2. 确定基础属性数量
+    let statCount = getStatCountByQuality(quality);
+    
+    // 3. 随机选择属性
+    let availableStats = getAvailableStatsForSlot(slot);
+    let selectedStats = Utils.randomSelect(availableStats, statCount);
+    
+    // 4. 计算属性数值
+    let stats = {};
+    selectedStats.forEach(stat => {
+        let range = getStatRange(stat, level, quality);
+        stats[stat] = Utils.randomBetween(range.min, range.max);
+    });
+    
+    return new Equipment({
+        slot: slot,
+        level: level,
+        quality: quality,
+        stats: stats
+    });
+}
+```
 
-### 数值平衡
-- **属性基准值**: 需要根据游戏进度动态调整
-- **装备掉落率**: 确保玩家有持续的装备更新动力
-- **经验曲线**: 保持升级的成就感而不会过于缓慢
+#### 3.3 装备评估系统
+```javascript
+// 装备价值评估
+function calculateEquipmentValue(equipment) {
+    let totalValue = 0;
+    
+    for (let [stat, value] of Object.entries(equipment.stats)) {
+        let weight = STAT_WEIGHTS[stat] || 1.0;
+        totalValue += value * weight;
+    }
+    
+    // 品质加成
+    totalValue *= QUALITY_MULTIPLIERS[equipment.quality];
+    
+    return totalValue;
+}
+```
 
-### 游戏节奏
-- **战斗速度**: 保持快节奏但不会错过重要信息
-- **进度感**: 确保玩家能感受到持续的进步
-- **挂机效率**: 离线收益不能过高影响在线体验 
+### 4. 技能系统
+
+#### 4.1 技能数据结构
+```javascript
+class Skill {
+    constructor(data) {
+        this.id = string;             // 技能ID
+        this.name = string;           // 技能名称
+        this.type = string;           // 'passive', 'active', 'aura'
+        this.class = string;          // 所属职业
+        this.maxLevel = number;       // 最大等级
+        this.currentLevel = 0;        // 当前等级
+        this.requirements = {         // 学习需求
+            level: number,
+            skills: []                // 前置技能
+        };
+        
+        // 技能效果 (根据等级缩放)
+        this.effects = {
+            damage: number,           // 伤害倍率
+            cooldown: number,         // 冷却时间
+            manaCost: number,         // 法力消耗
+            stats: {},               // 属性加成
+            buffs: []                // 附加效果
+        };
+        
+        // 自动释放设置
+        this.autocast = {
+            enabled: false,
+            priority: 0,
+            conditions: []            // 释放条件
+        };
+    }
+}
+```
+
+#### 4.2 技能树结构
+```javascript
+// 职业技能树定义
+const SKILL_TREES = {
+    warrior: {
+        'power_strike': {          // 强力攻击
+            type: 'active',
+            effects: { damage: 1.5, cooldown: 3000 }
+        },
+        'tough_skin': {            // 坚韧皮肤
+            type: 'passive', 
+            effects: { stats: { defense: 10 } }
+        },
+        'battle_cry': {            // 战吼
+            type: 'aura',
+            effects: { stats: { physicalAttack: 20 } }
+        }
+    },
+    // ... 其他职业
+};
+```
+
+### 5. UI系统架构
+
+#### 5.1 UI组件结构
+```javascript
+// UI基类
+class BaseUI {
+    constructor(game) {
+        this.game = game;
+        this.element = null;
+        this.isVisible = false;
+    }
+    
+    // 必须实现的方法
+    init() {}                     // 初始化UI元素
+    update() {}                   // 更新显示数据
+    show() {}                     // 显示UI
+    hide() {}                     // 隐藏UI
+    destroy() {}                  // 销毁UI
+}
+```
+
+#### 5.2 页面布局定义
+```html
+<!-- 主界面结构 -->
+<div class="game-container">
+    <!-- 左侧导航 (固定宽度) -->
+    <nav class="sidebar">
+        <div class="nav-item" data-page="character">👤 角色</div>
+        <div class="nav-item" data-page="equipment">🛡️ 背包</div>
+        <div class="nav-item" data-page="skills">⚡ 技能</div>
+    </nav>
+    
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <!-- 资源栏 -->
+        <div class="resource-bar">
+            <span id="gold">💰 0</span>
+            <span id="gems">💎 0</span>
+        </div>
+        
+        <!-- 左右分栏 (各占50%) -->
+        <div class="game-layout">
+            <div class="left-panel"><!-- 功能页面 --></div>
+            <div class="right-panel"><!-- 战斗页面 --></div>
+        </div>
+    </main>
+</div>
+```
+
+### 6. 数据配置系统
+
+#### 6.1 配置文件结构
+```javascript
+// js/data/classes.js - 职业配置
+const CLASS_DATA = {
+    warrior: {
+        name: '战士',
+        baseStats: {
+            physicalAttack: 15,
+            magicalAttack: 5,
+            health: 120,
+            defense: 10,
+            magicResist: 5
+        },
+        statGrowth: {
+            physicalAttack: 2,
+            health: 8,
+            defense: 1
+        }
+    }
+    // ... 其他职业
+};
+
+// js/data/monsters.js - 怪物配置  
+const MONSTER_DATA = {
+    skeleton_warrior: {
+        name: '骷髅战士',
+        baseLevel: 1,
+        stats: {
+            physicalAttack: 12,
+            health: 80,
+            defense: 8
+        },
+        rewards: {
+            exp: 10,
+            gold: 5
+        }
+    }
+    // ... 其他怪物
+};
+```
+
+#### 6.2 平衡性参数
+```javascript
+// js/utils/Calculator.js - 平衡参数
+const BALANCE_CONFIG = {
+    // 属性基准值 (用于百分比计算)
+    defenseBase: 100,
+    critBase: 100,
+    hitBase: 100,
+    
+    // 经验需求公式
+    expFormula: (level) => Math.floor(100 * Math.pow(1.2, level - 1)),
+    
+    // 装备品质概率
+    qualityRates: {
+        common: 0.5,
+        magic: 0.3, 
+        rare: 0.15,
+        epic: 0.04,
+        legendary: 0.01
+    },
+    
+    // 属性权重 (用于装备评估)
+    statWeights: {
+        physicalAttack: 1.0,
+        magicalAttack: 1.0,
+        health: 0.1,
+        defense: 0.8,
+        critRate: 1.2
+    }
+};
+```
+
+## 开发实现指南
+
+### 1. 开发步骤
+```
+步骤1: 完善Character类的属性计算和升级逻辑
+步骤2: 实现Combat类的自动战斗循环
+步骤3: 完善Equipment类的随机生成和装备系统
+步骤4: 实现Skills类的技能树和自动释放
+步骤5: 优化UI响应和数据显示
+步骤6: 添加存档系统和离线计算
+步骤7: 数据平衡和性能优化
+```
+
+### 2. 调试和测试
+```javascript
+// 开发者控制台命令
+window.game.character.gainExp(1000);        // 获得经验
+window.game.character.freePoints = 10;      // 获得属性点
+window.game.game.addGold(10000);                 // 获得金币
+window.game.equipment.generateRandomEquipment(10, 'weapon'); // 生成装备
+```
+
+### 3. 性能优化要点
+- **避免频繁DOM操作**: 使用DocumentFragment批量更新
+- **计算结果缓存**: 缓存复杂的属性计算结果
+- **事件节流**: UI更新使用requestAnimationFrame
+- **内存管理**: 及时清理不用的对象引用
+
+### 4. 错误处理
+```javascript
+// 统一错误处理
+class GameError extends Error {
+    constructor(message, code) {
+        super(message);
+        this.code = code;
+        this.timestamp = Date.now();
+    }
+}
+
+// 关键操作都要包装try-catch
+try {
+    this.character.levelUp();
+} catch (error) {
+    console.error('升级失败:', error);
+    Utils.showNotification('升级失败', 'error');
+}
+```
+
+## 扩展开发方向
+
+### 1. 短期目标 (1-2周)
+- 完善战斗循环和伤害计算
+- 实现装备随机生成和穿戴
+- 添加基础技能系统
+
+### 2. 中期目标 (1个月)  
+- 多职业平衡调整
+- 复杂技能效果和组合
+- 离线挂机收益系统
+
+### 3. 长期目标 (2-3个月)
+- 成就系统和里程碑
+- 多角色队伍系统
+- 公会和社交功能
+
+## 注意事项
+
+### 1. 代码规范
+- 使用ES6+语法，避免var声明
+- 类名使用PascalCase，方法名使用camelCase
+- 常量使用UPPER_SNAKE_CASE
+- 添加必要的注释，特别是复杂算法
+
+### 2. 兼容性
+- 目标浏览器: Chrome 70+, Firefox 65+, Safari 12+
+- 移动端适配: 响应式设计，触摸友好
+- 存档兼容: 版本升级时保持存档兼容性
+
+### 3. 安全考虑
+- 客户端验证: 所有用户输入都要验证
+- 数据完整性: 存档数据要校验合法性
+- 防作弊: 关键数值计算要有合理性检查
+
+---
+
+*本文档将随着开发进度持续更新和完善* 

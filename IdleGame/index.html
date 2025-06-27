@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>放置挂机战斗游戏</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjRkY2NTAwIiByeD0iNCIvPgo8cGF0aCBkPSJNOCAxMkgxMlY4SDIwVjEySDE2VjE2SDIwVjIwSDEyVjE2SDhWMTJaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMjQgMTBDMjQuNTUyMyAxMCAyNSAxMC40NDc3IDI1IDExQzI1IDExLjU1MjMgMjQuNTUyMyAxMiAyNCAxMkMyMy40NDc3IDEyIDIzIDExLjU1MjMgMjMgMTFDMjMgMTAuNDQ3NyAyMy40NDc3IDEwIDI0IDEwWiIgZmlsbD0id2hpdGUiLz4KPHA+aCBkPSJNMjQgMjBDMjQuNTUyMyAyMCAyNSAyMC40NDc3IDI1IDIxQzI1IDIxLjU1MjMgMjQuNTUyMyAyMiAyNCAyMkMyMy40NDc3IDIyIDIzIDIxLjU1MjMgMjMgMjFDMjMgMjAuNDQ3NyAyMy40NDc3IDIwIDI0IDIwWiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+" />
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/character.css">
     <link rel="stylesheet" href="css/combat.css">
     <link rel="stylesheet" href="css/equipment.css">
     <link rel="stylesheet" href="css/skills.css">
+    <link rel="stylesheet" href="css/debug.css">
 </head>
 <body>
     <div class="game-container">
@@ -25,6 +27,10 @@
             <div class="nav-item" data-page="skills">
                 <span class="nav-icon">⚡</span>
                 <span class="nav-text">技能</span>
+            </div>
+            <div class="nav-item" data-page="debug">
+                <span class="nav-icon">🔧</span>
+                <span class="nav-text">测试</span>
             </div>
         </nav>
 
@@ -50,56 +56,175 @@
                 <!-- 角色页面 -->
                 <div class="page active" id="character-page">
                     <div class="character-stats">
-                        <div class="stats-header">角色属性</div>
+                        <!-- 固定显示的基础信息 -->
+                        <div class="character-basic-info">
+                            <div class="basic-info-grid">
+                                <div class="info-item level-info">
+                                    <span class="info-label" data-text="stat.level">等级</span>
+                                    <span class="info-value" id="stat-level">1</span>
+                                </div>
+                                <div class="info-item exp-info">
+                                    <span class="info-label" data-text="stat.exp">经验值</span>
+                                    <span class="info-value" id="stat-exp">0/100</span>
+                                </div>
+                                <div class="info-item health-info">
+                                    <span class="info-label" data-text="stat.health">生命值</span>
+                                    <span class="info-value" id="stat-current-health">100/100</span>
+                                </div>
+                                <div class="info-item mana-info">
+                                    <span class="info-label" data-text="stat.mana">魔法值</span>
+                                    <span class="info-value" id="stat-current-mana">100/100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 属性标签页 -->
+                        <div class="stats-tabs">
+                            <div class="tab-buttons">
+                                <button class="stat-tab-btn active" data-stat-tab="attack" data-text="tab.attack">⚔️ 攻击</button>
+                                <button class="stat-tab-btn" data-stat-tab="defense" data-text="tab.defense">🛡️ 防御</button>
+                                <button class="stat-tab-btn" data-stat-tab="other" data-text="tab.other">✨ 其他</button>
+                            </div>
+
+                            <!-- 攻击属性标签页 -->
+                            <div class="stat-tab-content active" id="attack-tab">
                         <div class="stats-grid">
                             <div class="stat-item">
-                                <span class="stat-label">物理攻击</span>
+                                        <span class="stat-label" data-text="stat.attack">攻击力</span>
                                 <span class="stat-value" id="stat-physical-attack">10</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">魔法攻击</span>
+                                        <span class="stat-label" data-text="stat.spellPower">法术强度</span>
                                 <span class="stat-value" id="stat-magical-attack">5</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">生命值</span>
-                                <span class="stat-value" id="stat-health">100</span>
+                                        <span class="stat-label" data-text="stat.critRate">暴击率</span>
+                                        <span class="stat-value" id="stat-crit-rate">10</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label" data-text="stat.critDamage">暴击伤害</span>
+                                        <span class="stat-value" id="stat-crit-damage">150%</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label" data-text="stat.hitRate">命中率</span>
+                                        <span class="stat-value" id="stat-hit-rate">100</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label" data-text="stat.attackSpeed">攻击速度</span>
+                                        <span class="stat-value" id="stat-attack-speed">1.0</span>
+                                    </div>
+                                </div>
                             </div>
+
+                            <!-- 防御属性标签页 -->
+                            <div class="stat-tab-content" id="defense-tab">
+                                <div class="stats-grid">
                             <div class="stat-item">
-                                <span class="stat-label">防御值</span>
+                                        <span class="stat-label" data-text="stat.defense">防御值</span>
                                 <span class="stat-value" id="stat-defense">5</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">魔法抗性</span>
+                                        <span class="stat-label" data-text="stat.magicResist">魔法抗性</span>
                                 <span class="stat-value" id="stat-magic-resist">3</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">暴击率</span>
-                                <span class="stat-value" id="stat-crit-rate">10</span>
+                                        <span class="stat-label" data-text="stat.dodgeRate">闪避率</span>
+                                        <span class="stat-value" id="stat-dodge-rate">5</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label" data-text="stat.blockRate">格挡率</span>
+                                        <span class="stat-value" id="stat-block-rate">0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 其他属性标签页 -->
+                            <div class="stat-tab-content" id="other-tab">
+                                <div class="stats-grid">
+                                    <div class="stat-item">
+                                        <span class="stat-label" data-text="stat.moveSpeed">移动速度</span>
+                                        <span class="stat-value" id="stat-move-speed">100</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label" data-text="stat.skillHaste">技能急速</span>
+                                        <span class="stat-value" id="stat-skill-cooldown">0</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label" data-text="stat.healthRegen">生命回复</span>
+                                        <span class="stat-value" id="stat-health-regen">1/秒</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label" data-text="stat.manaRegen">魔法回复</span>
+                                        <span class="stat-value" id="stat-mana-regen">2/秒</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
                         <div class="attribute-points">
-                            <div class="points-header">自由属性点: <span id="free-points">0</span></div>
+                            <div class="points-header">
+                                <span><span data-text="ui.freePoints">自由属性点</span>: <span id="free-points">0</span></span>
+                                <div class="point-mode-selector">
+                                    <label for="point-mode">加点模式:</label>
+                                    <select id="point-mode">
+                                        <option value="1">+1</option>
+                                        <option value="5">+5</option>
+                                        <option value="10">+10</option>
+                                        <option value="50">+50</option>
+                                        <option value="all">全部</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="points-allocation">
                                 <div class="allocation-item">
-                                    <span>物理攻击</span>
-                                    <button class="point-btn" data-attr="physicalAttack">+</button>
+                                    <div class="attr-info">
+                                        <span class="attr-name" data-text="attr.strength">力量</span>
+                                        <span class="attr-desc" data-text="attr.strength.desc">增加攻击力和少量生命值</span>
+                                    </div>
+                                    <div class="attr-controls">
+                                        <span class="allocated-count" id="allocated-strength">0</span>
+                                        <button class="point-btn" data-attr="strength">+</button>
+                                    </div>
                                 </div>
                                 <div class="allocation-item">
-                                    <span>魔法攻击</span>
-                                    <button class="point-btn" data-attr="magicalAttack">+</button>
+                                    <div class="attr-info">
+                                        <span class="attr-name" data-text="attr.agility">敏捷</span>
+                                        <span class="attr-desc" data-text="attr.agility.desc">增加命中、闪避和暴击，少量增加攻击力</span>
+                                    </div>
+                                    <div class="attr-controls">
+                                        <span class="allocated-count" id="allocated-agility">0</span>
+                                        <button class="point-btn" data-attr="agility">+</button>
+                                    </div>
                                 </div>
                                 <div class="allocation-item">
-                                    <span>生命值</span>
-                                    <button class="point-btn" data-attr="health">+</button>
+                                    <div class="attr-info">
+                                        <span class="attr-name" data-text="attr.intelligence">智力</span>
+                                        <span class="attr-desc" data-text="attr.intelligence.desc">增加法术强度和魔法值</span>
+                                    </div>
+                                    <div class="attr-controls">
+                                        <span class="allocated-count" id="allocated-intelligence">0</span>
+                                        <button class="point-btn" data-attr="intelligence">+</button>
+                                    </div>
                                 </div>
                                 <div class="allocation-item">
-                                    <span>防御值</span>
-                                    <button class="point-btn" data-attr="defense">+</button>
+                                    <div class="attr-info">
+                                        <span class="attr-name" data-text="attr.spirit">精神</span>
+                                        <span class="attr-desc" data-text="attr.spirit.desc">增加魔法抗性和技能急速</span>
+                                    </div>
+                                    <div class="attr-controls">
+                                        <span class="allocated-count" id="allocated-spirit">0</span>
+                                        <button class="point-btn" data-attr="spirit">+</button>
+                                    </div>
                                 </div>
                                 <div class="allocation-item">
-                                    <span>魔法抗性</span>
-                                    <button class="point-btn" data-attr="magicResist">+</button>
+                                    <div class="attr-info">
+                                        <span class="attr-name" data-text="attr.stamina">耐力</span>
+                                        <span class="attr-desc" data-text="attr.stamina.desc">增加生命值和防御值</span>
+                                    </div>
+                                    <div class="attr-controls">
+                                        <span class="allocated-count" id="allocated-stamina">0</span>
+                                        <button class="point-btn" data-attr="stamina">+</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -171,7 +296,6 @@
                                 <div class="inventory-tabs">
                                     <button class="tab-btn active" data-tab="equipment">装备</button>
                                     <button class="tab-btn" data-tab="materials">材料</button>
-                                    <button class="tab-btn" data-tab="consumables">消耗品</button>
                                 </div>
                                 <div class="inventory-sort">
                                     <select id="sort-select">
@@ -189,30 +313,140 @@
                 </div>
 
                 <!-- 技能页面 -->
-                <div class="page" id="skills-page">
-                    <div class="skills-container">
-                        <div class="skills-header">
-                            <div class="class-selector">
-                                <select id="class-select">
-                                    <option value="warrior">战士</option>
-                                    <option value="mage">法师</option>
-                                    <option value="tank">坦克</option>
-                                    <option value="priest">牧师</option>
-                                    <option value="assassin">刺客</option>
-                                    <option value="archer">射手</option>
-                                </select>
+                <div class="page skills-page" id="skills-page">
+                    <!-- 技能页面内容将由SkillUI动态生成 -->
+                </div>
+
+                <!-- 开发者测试页面 -->
+                <div class="page" id="debug-page">
+                    <div class="debug-container">
+                        <div class="debug-header">
+                            <h2>开发者测试工具</h2>
+                            <p>仅用于开发和测试目的</p>
+                        </div>
+                        
+                        <div class="debug-sections">
+                            <!-- 角色相关 -->
+                            <div class="debug-section">
+                                <h3>角色测试</h3>
+                                <div class="debug-controls">
+                                    <div class="control-group">
+                                        <label>添加经验值:</label>
+                                        <input type="number" id="exp-input" value="100" min="1" max="10000">
+                                        <button onclick="debugAddExp()">添加经验</button>
+                                    </div>
+                                    <div class="control-group">
+                                        <label>添加金币:</label>
+                                        <input type="number" id="gold-input" value="1000" min="1" max="100000">
+                                        <button onclick="debugAddGold()">添加金币</button>
+                                    </div>
+                                    <div class="control-group">
+                                        <label>添加宝石:</label>
+                                        <input type="number" id="gems-input" value="100" min="1" max="10000">
+                                        <button onclick="debugAddGems()">添加宝石</button>
+                                    </div>
+                                    <div class="control-group">
+                                        <button onclick="debugLevelUp()">强制升级</button>
+                                        <button onclick="debugFullHeal()">完全恢复</button>
+                                        <button onclick="debugResetAttributes()">重置属性点</button>
+                                        <button onclick="debugResetSkillPoints()">重置技能点</button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="skill-points">技能点: <span id="skill-points">0</span></div>
-                        </div>
-                        
-                        <div class="skill-tree" id="skill-tree">
-                            <!-- 技能树将通过JavaScript动态生成 -->
-                        </div>
-                        
-                        <div class="auto-cast-settings">
-                            <div class="settings-header">自动施法设置</div>
-                            <div class="auto-cast-list" id="auto-cast-list">
-                                <!-- 自动施法设置将通过JavaScript动态生成 -->
+
+                            <!-- 装备相关 -->
+                            <div class="debug-section">
+                                <h3>装备测试</h3>
+                                <div class="debug-controls">
+                                    <div class="control-group">
+                                        <label>装备槽位:</label>
+                                        <select id="equipment-slot">
+                                            <option value="helmet">头盔</option>
+                                            <option value="chest">胸甲</option>
+                                            <option value="pants">护腿</option>
+                                            <option value="boots">靴子</option>
+                                            <option value="gloves">手套</option>
+                                            <option value="lefthand">左手武器</option>
+                                            <option value="righthand">右手武器</option>
+                                            <option value="necklace">项链</option>
+                                            <option value="ring1">戒指1</option>
+                                            <option value="ring2">戒指2</option>
+                                            <option value="belt">腰带</option>
+                                            <option value="shoulder">肩甲</option>
+                                            <option value="earring">耳环</option>
+                                        </select>
+                                        <label>品质:</label>
+                                        <select id="equipment-quality">
+                                            <option value="common">普通</option>
+                                            <option value="magic">魔法</option>
+                                            <option value="rare">稀有</option>
+                                            <option value="epic">史诗</option>
+                                            <option value="legendary">传说</option>
+                                        </select>
+                                        <label>等级:</label>
+                                        <input type="number" id="equipment-level" value="1" min="1" max="100">
+                                        <button onclick="debugGenerateEquipment()">生成装备</button>
+                                    </div>
+                                    <div class="control-group">
+                                        <button onclick="debugClearInventory()">清空背包</button>
+                                        <button onclick="debugFillInventory()">填满背包</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 材料相关 -->
+                            <div class="debug-section">
+                                <h3>材料测试</h3>
+                                <div class="debug-controls">
+                                    <div class="control-group">
+                                        <label>材料类型:</label>
+                                        <select id="material-type">
+                                            <option value="iron">铁矿</option>
+                                            <option value="gold_ore">金矿</option>
+                                            <option value="crystal">水晶</option>
+                                            <option value="leather">皮革</option>
+                                            <option value="cloth">布料</option>
+                                        </select>
+                                        <label>数量:</label>
+                                        <input type="number" id="material-count" value="10" min="1" max="999">
+                                        <button onclick="debugAddMaterial()">添加材料</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 系统相关 -->
+                            <div class="debug-section">
+                                <h3>系统测试</h3>
+                                <div class="debug-controls">
+                                    <div class="control-group">
+                                        <button onclick="debugPrintSave()">打印存档到控制台</button>
+                                        <button onclick="debugCheckLocalStorage()">检查存储状态</button>
+                                        <button onclick="debugClearSave()">清除存档</button>
+                                    </div>
+                                    <div class="control-group">
+                                        <button onclick="debugSaveGame()">手动保存</button>
+                                    </div>
+                                    <div class="control-group">
+                                        <button onclick="debugToggleAutoSave()">切换自动保存</button>
+                                        <button onclick="debugShowGameInfo()">显示游戏信息</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 战斗相关 -->
+                            <div class="debug-section">
+                                <h3>战斗测试</h3>
+                                <div class="debug-controls">
+                                    <div class="control-group">
+                                        <button onclick="debugKillEnemy()">击败当前敌人</button>
+                                        <button onclick="debugNextStage()">跳到下一关</button>
+                                    </div>
+                                    <div class="control-group">
+                                        <label>跳转关卡:</label>
+                                        <input type="number" id="stage-input" value="1" min="1" max="1000">
+                                        <button onclick="debugJumpToStage()">跳转关卡</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -228,16 +462,21 @@
                         <div class="battle-display">
                             <!-- 玩家角色列表 -->
                             <div class="player-characters">
-                                <div class="character-avatar-box">
+                                <div class="character-avatar-box" id="player-character">
                                     <div class="character-portrait">
                                         <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjNEY0NjNGIiByeD0iOCIvPgo8cGF0aCBkPSJNMzIgMTZDMzUuMzEzNyAxNiAzOCAxOC42ODYzIDM4IDIyQzM4IDI1LjMxMzcgMzUuMzEzNyAyOCAzMiAyOEMyOC42ODYzIDI4IDI2IDI1LjMxMzcgMjYgMjJDMjYgMTguNjg2MyAyOC42ODYzIDE2IDMyIDE2WiIgZmlsbD0iI0ZGQzEwNyIvPgo8cGF0aCBkPSJNMjAgNDhDMjAgNDAuMjY4IDI2LjI2OCAzNCAzNCAzNEMzNS4zMTM3IDM0IDM2LjU1IDM0LjI0NzEgMzcuNjc4NCAzNC42OTg1QzM5LjA0NzEgMzUuMjM1MyAzOS44OTQ3IDM0LjkxMTggNDEuMzE1OCAzNC4zMTU4QzQyLjczNjggMzMuNzE5NyA0My45NDczIDMzLjQ0NzQgNDUuMzE1OCAzMy4zMTU4QzQ2LjY4NDIgMzMuMTg0MiA0OCAzMy4zMTU4IDQ4IDM0QzQ4IDM0IDQ4IDQyIDQ4IDQ4SDIwWiIgZmlsbD0iIzMzNzNEQyIvPgo8L3N2Zz4K" alt="角色">
                                     </div>
                                     <div class="character-bars">
                                         <div class="hp-bar">
                                             <div class="hp-fill" id="player-hp-fill" style="width: 100%"></div>
+                                            <div class="hp-text" id="player-hp-text">100/100</div>
                                         </div>
                                         <div class="mp-bar">
                                             <div class="mp-fill" id="player-mp-fill" style="width: 100%"></div>
+                                            <div class="mp-text" id="player-mp-text">100/100</div>
+                                        </div>
+                                        <div class="action-bar">
+                                            <div class="action-fill" id="player-action-fill" style="width: 0%"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -247,21 +486,8 @@
                             <div class="vs-indicator">VS</div>
                             
                             <!-- 怪物列表 -->
-                            <div class="enemy-characters">
-                                <div class="enemy-avatar-box">
-                                    <div class="enemy-portrait">
-                                        <img id="battle-enemy-image" src="" alt="敌人">
-                                    </div>
-                                    <div class="enemy-bars">
-                                        <div class="hp-bar">
-                                            <div class="hp-fill" id="enemy-hp-fill" style="width: 100%"></div>
-                                        </div>
-                                    </div>
-                                    <div class="enemy-info">
-                                        <div class="enemy-name" id="battle-enemy-name">骷髅战士</div>
-                                        <div class="enemy-level">等级 <span id="battle-enemy-level">1</span></div>
-                                    </div>
-                                </div>
+                            <div class="enemy-characters" id="enemy-characters">
+                                <!-- 敌人将通过JavaScript动态生成 -->
                             </div>
                         </div>
                         
@@ -269,77 +495,71 @@
                         <div class="skill-bar">
                             <div class="skill-slots">
                                 <div class="skill-slot-large" data-skill="0">
-                                    <div class="skill-icon">🔥</div>
-                                    <div class="skill-dropdown">
-                                        <select class="skill-select">
-                                            <option value="">选择技能</option>
-                                        </select>
-                                    </div>
+                                    <div class="skill-icon">❓</div>
                                 </div>
                                 <div class="skill-slot-large" data-skill="1">
-                                    <div class="skill-icon">❄️</div>
-                                    <div class="skill-dropdown hidden">
-                                        <select class="skill-select">
-                                            <option value="">选择技能</option>
-                                        </select>
-                                    </div>
+                                    <div class="skill-icon">❓</div>
                                 </div>
                                 <div class="skill-slot-large" data-skill="2">
-                                    <div class="skill-icon">⚡</div>
-                                    <div class="skill-dropdown hidden">
-                                        <select class="skill-select">
-                                            <option value="">选择技能</option>
-                                        </select>
-                                    </div>
+                                    <div class="skill-icon">❓</div>
                                 </div>
                                 <div class="skill-slot-large" data-skill="3">
-                                    <div class="skill-icon">🗡️</div>
-                                    <div class="skill-dropdown hidden">
-                                        <select class="skill-select">
-                                            <option value="">选择技能</option>
-                                        </select>
-                                    </div>
+                                    <div class="skill-icon">❓</div>
                                 </div>
                                 <div class="skill-slot-large" data-skill="4">
-                                    <div class="skill-icon">🛡️</div>
-                                    <div class="skill-dropdown hidden">
-                                        <select class="skill-select">
-                                            <option value="">选择技能</option>
-                                        </select>
-                                    </div>
+                                    <div class="skill-icon">❓</div>
                                 </div>
                                 <div class="skill-slot-large" data-skill="5">
-                                    <div class="skill-icon">💫</div>
-                                    <div class="skill-dropdown hidden">
-                                        <select class="skill-select">
-                                            <option value="">选择技能</option>
-                                        </select>
-                                    </div>
+                                    <div class="skill-icon">❓</div>
                                 </div>
                                 <div class="skill-slot-large" data-skill="6">
-                                    <div class="skill-icon">🌟</div>
-                                    <div class="skill-dropdown hidden">
-                                        <select class="skill-select">
-                                            <option value="">选择技能</option>
-                                        </select>
-                                    </div>
+                                    <div class="skill-icon">❓</div>
                                 </div>
                                 <div class="skill-slot-large" data-skill="7">
-                                    <div class="skill-icon">✨</div>
-                                    <div class="skill-dropdown hidden">
-                                        <select class="skill-select">
-                                            <option value="">选择技能</option>
-                                        </select>
-                                    </div>
+                                    <div class="skill-icon">❓</div>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- 战斗日志 -->
                         <div class="combat-log">
-                            <div class="log-header">战斗日志</div>
+                            <div class="log-header">
+                                <span>战斗日志</span>
+                            </div>
                             <div class="log-content" id="combat-log">
                                 <div class="log-entry">战斗开始...</div>
+                            </div>
+                            
+                            <!-- 战斗统计 -->
+                            <div class="combat-stats">
+                                <div class="stat-item">
+                                    <div class="stat-label">当前关卡</div>
+                                    <div class="stat-value" id="current-stage">1</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">历史最高</div>
+                                    <div class="stat-value" id="max-stage">1</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">敌人剩余</div>
+                                    <div class="stat-value" id="enemy-count">0/0</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">造成伤害</div>
+                                    <div class="stat-value" id="damage-dealt">0</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">受到伤害</div>
+                                    <div class="stat-value" id="damage-taken">0</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 战斗控制按钮 -->
+                            <div class="combat-controls">
+                                <button class="combat-btn" id="start-combat-btn" onclick="startCombat()">开始战斗</button>
+                                <button class="combat-btn pause" id="pause-combat-btn" onclick="pauseCombat()">暂停</button>
+                                <button class="combat-btn stop" id="stop-combat-btn" onclick="stopCombat()">结束</button>
+                                <button class="combat-btn" id="next-stage-btn" onclick="nextStage()">下一关</button>
                             </div>
                         </div>
                     </div>
@@ -352,11 +572,25 @@
 
     <!-- 工具提示 -->
     <div id="tooltip" class="tooltip"></div>
+    
+    <!-- 角色属性悬浮提示 -->
+    <div id="character-tooltip" class="character-tooltip">
+        <div class="tooltip-header">
+            <div class="tooltip-name" id="tooltip-character-name">角色名称</div>
+            <div class="tooltip-level" id="tooltip-character-level">等级 1</div>
+        </div>
+        <div class="tooltip-health" id="tooltip-character-health">生命值: 100/100</div>
+        <div class="tooltip-mana" id="tooltip-character-mana">魔法值: 100/100</div>
+        <div class="tooltip-stats" id="tooltip-character-stats">
+            <!-- 属性将通过JavaScript动态生成 -->
+        </div>
+    </div>
 
     <!-- JavaScript文件 -->
     <script src="js/utils/Utils.js"></script>
     <script src="js/utils/Calculator.js"></script>
     <script src="js/utils/Storage.js"></script>
+    <script src="js/data/texts.js"></script>
     <script src="js/data/classes.js"></script>
     <script src="js/data/skills.js"></script>
     <script src="js/data/equipment.js"></script>
@@ -370,6 +604,7 @@
     <script src="js/ui/CombatUI.js"></script>
     <script src="js/ui/EquipmentUI.js"></script>
     <script src="js/ui/SkillUI.js"></script>
+    <script src="js/debug.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html> 

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技能系统测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .error {
+            color: #ff6b6b;
+        }
+        .success {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>技能系统测试</h1>
+        
+        <div class="test-section">
+            <h2>数据结构测试</h2>
+            <button onclick="testSkillData()">测试技能数据</button>
+            <div id="data-result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>技能树渲染测试</h2>
+            <button onclick="testSkillTree()">渲染技能树</button>
+            <div id="tree-result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>控制台输出</h2>
+            <p>请打开浏览器开发者工具查看详细输出</p>
+        </div>
+    </div>
+
+    <!-- 引入技能数据 -->
+    <script src="js/data/skills.js"></script>
+    
+    <script>
+        function testSkillData() {
+            const resultDiv = document.getElementById('data-result');
+            
+            try {
+                console.log('=== 技能数据结构测试 ===');
+                console.log('SkillTreeData:', SkillTreeData);
+                
+                // 测试战士数据
+                const warriorData = SkillTreeData.warrior;
+                if (!warriorData) {
+                    throw new Error('战士数据不存在');
+                }
+                
+                console.log('战士数据:', warriorData);
+                
+                // 测试分支数据
+                const strengthBranch = warriorData.branches.strength;
+                if (!strengthBranch) {
+                    throw new Error('力量分支不存在');
+                }
+                
+                console.log('力量分支:', strengthBranch);
+                
+                // 测试技能数据
+                const basicSkills = strengthBranch.skills.basic;
+                if (!basicSkills || basicSkills.length === 0) {
+                    throw new Error('基础技能不存在');
+                }
+                
+                console.log('基础技能:', basicSkills);
+                
+                resultDiv.innerHTML = '<span class="success">✓ 数据结构测试通过</span>';
+                
+            } catch (error) {
+                console.error('数据结构测试失败:', error);
+                resultDiv.innerHTML = `<span class="error">✗ 测试失败: ${error.message}</span>`;
+            }
+        }
+        
+        function testSkillTree() {
+            const resultDiv = document.getElementById('tree-result');
+            
+            try {
+                console.log('=== 技能树渲染测试 ===');
+                
+                // 创建简单的技能节点
+                const testContainer = document.createElement('div');
+                testContainer.style.cssText = `
+                    display: flex;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                    margin-top: 10px;
+                `;
+                
+                // 渲染战士的基础技能
+                const warriorData = SkillTreeData.warrior;
+                Object.entries(warriorData.branches).forEach(([branchKey, branchData]) => {
+                    const branchDiv = document.createElement('div');
+                    branchDiv.style.cssText = `
+                        border: 2px solid ${branchData.color};
+                        padding: 10px;
+                        border-radius: 8px;
+                        margin: 5px;
+                    `;
+                    branchDiv.innerHTML = `<strong>${branchData.name}</strong>`;
+                    
+                    // 添加基础技能
+                    if (branchData.skills.basic) {
+                        branchData.skills.basic.forEach(skill => {
+                            const skillNode = document.createElement('div');
+                            skillNode.style.cssText = `
+                                width: 40px;
+                                height: 40px;
+                                border: 2px solid ${branchData.color};
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin: 5px;
+                                background: rgba(255,255,255,0.1);
+                            `;
+                            skillNode.textContent = skill.icon;
+                            skillNode.title = skill.name;
+                            branchDiv.appendChild(skillNode);
+                        });
+                    }
+                    
+                    testContainer.appendChild(branchDiv);
+                });
+                
+                resultDiv.innerHTML = '<span class="success">✓ 技能树渲染成功</span>';
+                resultDiv.appendChild(testContainer);
+                
+            } catch (error) {
+                console.error('技能树渲染测试失败:', error);
+                resultDiv.innerHTML = `<span class="error">✗ 渲染失败: ${error.message}</span>`;
+            }
+        }
+        
+        // 页面加载时自动运行基本测试
+        window.addEventListener('load', () => {
+            console.log('技能系统测试页面加载完成');
+            testSkillData();
+        });
+    </script>
+</body>
+</html> 

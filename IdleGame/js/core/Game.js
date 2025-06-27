@@ -1,11 +1,25 @@
 // 游戏主控制器
 class Game {
     constructor() {
+        this.isInitialized = false;
+        this.lastUpdate = 0;
+        this.gameLoop = null;
+        
+        // 游戏组件
         this.character = null;
-        this.combat = null;
         this.equipment = null;
         this.skills = null;
-        this.ui = {};
+        this.combat = null;
+        
+        // UI组件
+        this.characterUI = null;
+        this.equipmentUI = null;
+        this.skillUI = null;
+        this.combatUI = null;
+        
+        // 游戏设置
+        this.autoSaveInterval = 30000; // 30秒自动保存
+        this.autoSaveTimer = null;
         
         this.gold = 0;
         this.gems = 0;
@@ -15,220 +29,200 @@ class Game {
             saveInterval: 30000, // 30秒
             notifications: true
         };
-        
-        this.gameLoop = null;
-        this.lastUpdate = Date.now();
-        this.isPaused = false;
     }
 
     // 初始化游戏
     async init() {
         try {
-            console.log('正在初始化游戏...');
+            console.log('游戏初始化开始...');
             
-            // 加载存档
-            await this.loadGame();
+            // 初始化游戏组件
+            this.initComponents();
             
-            // 初始化核心系统
-            this.initializeSystems();
+            // 初始化UI组件
+            this.initUI();
             
-            // 初始化UI
-            this.initializeUI();
+            // 加载游戏数据
+            this.loadGame();
             
             // 启动游戏循环
             this.startGameLoop();
             
-            // 初始化自动存档
-            if (this.settings.autoSave) {
-                this.initAutoSave();
-            }
+            // 启动自动保存
+            this.startAutoSave();
             
-            console.log('游戏初始化完成');
-            Utils.showNotification('游戏已加载', 'success');
+            // 绑定页面事件
+            this.bindEvents();
+            
+            this.isInitialized = true;
+            console.log('游戏初始化完成！');
+            
+            // 如果开启了自动战斗，开始战斗
+            if (this.combat.autoMode) {
+                this.combat.startCombat();
+            }
             
         } catch (error) {
             console.error('游戏初始化失败:', error);
-            Utils.showNotification('游戏初始化失败', 'error');
         }
     }
 
-    // 初始化核心系统
-    initializeSystems() {
-        // 如果没有角色数据，创建新角色
-        if (!this.character) {
-            this.character = new Character('冒险者', 'warrior');
-        }
-        
-        // 初始化其他系统
+    // 初始化游戏组件
+    initComponents() {
+        this.character = new Character();
         this.equipment = new Equipment(this);
         this.skills = new Skills(this);
         this.combat = new Combat(this);
     }
 
-    // 初始化UI
-    initializeUI() {
-        this.ui.character = new CharacterUI(this);
-        this.ui.combat = new CombatUI(this);
-        this.ui.equipment = new EquipmentUI(this);
-        this.ui.skill = new SkillUI(this);
+    // 初始化UI组件
+    initUI() {
+        this.characterUI = new CharacterUI(this);
+        this.equipmentUI = new EquipmentUI(this);
+        this.skillUI = new SkillUI(this.skills);
+        this.combatUI = new CombatUI(this);
         
-        // 初始化导航
-        this.initializeNavigation();
+        // 创建ui对象来组织所有UI组件
+        this.ui = {
+            character: this.characterUI,
+            equipment: this.equipmentUI,
+            skill: this.skillUI,
+            combat: this.combatUI
+        };
         
-        // 更新所有UI
-        this.updateAllUI();
+        // 将UI组件设为全局变量，便于调试和访问
+        window.characterUI = this.characterUI;
+        window.equipmentUI = this.equipmentUI;
+        window.skillUI = this.skillUI;
+        window.combatUI = this.combatUI;
     }
 
-    // 初始化导航系统
-    initializeNavigation() {
+    // 绑定页面事件
+    bindEvents() {
+        // 绑定导航切换
+        this.bindNavigation();
+        
+        // 绑定窗口事件
+        window.addEventListener('beforeunload', () => {
+            this.saveGame();
+        });
+        
+        // 绑定可见性变化事件
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                this.saveGame();
+            }
+        });
+    }
+
+    // 绑定导航
+    bindNavigation() {
         const navItems = document.querySelectorAll('.nav-item');
         const pages = document.querySelectorAll('.page');
         
         navItems.forEach(item => {
             item.addEventListener('click', () => {
-                const targetPage = item.getAttribute('data-page');
-                this.switchPage(targetPage);
+                const targetPage = item.dataset.page;
                 
                 // 更新导航状态
                 navItems.forEach(nav => nav.classList.remove('active'));
                 item.classList.add('active');
+                
+                // 更新页面显示
+                pages.forEach(page => page.classList.remove('active'));
+                const targetPageElement = document.getElementById(`${targetPage}-page`);
+                if (targetPageElement) {
+                    targetPageElement.classList.add('active');
+                }
+                
+                // 更新对应的UI
+                this.updatePageUI(targetPage);
             });
         });
     }
 
-    // 切换页面
-    switchPage(pageName) {
-        const pages = document.querySelectorAll('.page');
-        pages.forEach(page => page.classList.remove('active'));
-        
-        const targetPage = document.getElementById(`${pageName}-page`);
-        if (targetPage) {
-            targetPage.classList.add('active');
-            
-            // 触发页面特定的更新
+    // 更新页面UI
+    updatePageUI(pageName) {
             switch (pageName) {
                 case 'character':
-                    this.ui.character.update();
+                this.characterUI.update();
                     break;
                 case 'equipment':
-                    this.ui.equipment.update();
+                this.equipmentUI.update();
                     break;
                 case 'skills':
-                    this.ui.skill.update();
+                this.skillUI.update();
+                break;
+            case 'combat':
+                this.combatUI.update();
                     break;
-            }
         }
     }
 
     // 启动游戏循环
     startGameLoop() {
-        this.gameLoop = setInterval(() => {
-            if (!this.isPaused) {
-                const now = Date.now();
-                const deltaTime = (now - this.lastUpdate) / 1000;
-                this.lastUpdate = now;
-                
-                this.update(deltaTime);
-            }
-        }, 100); // 10 FPS
+        this.lastUpdate = performance.now();
+        this.gameLoop = requestAnimationFrame((timestamp) => this.update(timestamp));
     }
 
-    // 游戏主更新循环
-    update(deltaTime) {
-        // 更新角色Buff
-        if (this.character) {
-            this.character.updateBuffs();
-        }
+    // 游戏更新循环
+    update(timestamp) {
+        if (!this.isInitialized) return;
         
-        // 更新战斗系统
-        if (this.combat) {
+        const deltaTime = timestamp - this.lastUpdate;
+        this.lastUpdate = timestamp;
+
+        // 更新游戏组件
+        this.character.update(deltaTime);
             this.combat.update(deltaTime);
-        }
         
-        // 更新技能冷却
-        if (this.skills) {
-            this.skills.updateCooldowns(deltaTime);
+        // 更新UI（降低频率以提高性能）
+        if (timestamp % 100 < deltaTime) { // 大约每100ms更新一次UI
+            this.updateUI();
         }
-        
-        // 更新UI (节流更新)
-        if (Math.random() < 0.1) { // 10%概率更新UI，避免频繁更新
-            this.updateResourcesUI();
-            // 更新战斗UI
-            if (this.ui.combat) {
-                this.ui.combat.update();
-            }
-        }
+
+        // 继续游戏循环
+        this.gameLoop = requestAnimationFrame((timestamp) => this.update(timestamp));
     }
 
     // 更新所有UI
-    updateAllUI() {
-        this.updateResourcesUI();
+    updateUI() {
+        // 更新资源显示
+        this.updateResourceDisplay();
         
-        // 更新各个页面UI
-        Object.values(this.ui).forEach(ui => {
-            if (ui.update) ui.update();
-        });
-    }
-
-    // 更新资源UI
-    updateResourcesUI() {
-        const goldElement = document.getElementById('gold');
-        const gemsElement = document.getElementById('gems');
-        
-        if (goldElement) goldElement.textContent = Utils.formatNumber(this.gold);
-        if (gemsElement) gemsElement.textContent = Utils.formatNumber(this.gems);
-    }
-
-
-
-    // 加载游戏存档
-    async loadGame() {
-        try {
-            const saveData = Storage.loadGame();
-            if (saveData) {
-                // 加载基础数据
-                this.gold = saveData.gold || 0;
-                this.gems = saveData.gems || 0;
-                this.currentStage = saveData.currentStage || 1;
-                this.settings = { ...this.settings, ...saveData.settings };
-                
-                // 加载角色数据
-                if (saveData.character) {
-                    this.character = new Character();
-                    this.character.loadCharacterData(saveData.character);
-                }
-                
-                console.log('存档加载成功');
-            } else {
-                console.log('没有找到存档，开始新游戏');
-                this.startNewGame();
-            }
-        } catch (error) {
-            console.error('加载存档失败:', error);
-            this.startNewGame();
+        // 更新当前活跃页面的UI
+        const activePage = document.querySelector('.nav-item.active');
+        if (activePage) {
+            this.updatePageUI(activePage.dataset.page);
         }
     }
 
-    // 开始新游戏
-    startNewGame() {
-        this.character = new Character('冒险者', 'warrior');
-        this.gold = 100;
-        this.gems = 0;
-        this.currentStage = 1;
+    // 更新资源显示
+    updateResourceDisplay() {
+        const goldElement = document.getElementById('gold');
+        const gemsElement = document.getElementById('gems');
         
-        // 给新玩家一些初始装备
-        this.giveStarterEquipment();
+        if (goldElement && this.character) {
+            goldElement.textContent = Utils.formatNumber(this.character.gold || 0);
+        }
+        
+        if (gemsElement && this.character) {
+            gemsElement.textContent = Utils.formatNumber(this.character.gems || 0);
+        }
     }
 
-    // 给予初始装备
-    giveStarterEquipment() {
-        if (this.equipment) {
-            // 生成一些基础装备
-            const starterSlots = ['lefthand', 'chest', 'helmet'];
-            starterSlots.forEach(slot => {
-                const equipment = this.equipment.generateRandomEquipment(1, slot, 'common');
-                this.equipment.addToInventory(equipment);
-            });
+    // 启动自动保存
+    startAutoSave() {
+        this.autoSaveTimer = setInterval(() => {
+            this.saveGame();
+        }, this.autoSaveInterval);
+    }
+
+    // 停止自动保存
+    stopAutoSave() {
+        if (this.autoSaveTimer) {
+            clearInterval(this.autoSaveTimer);
+            this.autoSaveTimer = null;
         }
     }
 
@@ -236,107 +230,179 @@ class Game {
     saveGame() {
         try {
             const saveData = {
-                gold: this.gold,
-                gems: this.gems,
-                currentStage: this.currentStage,
-                settings: this.settings,
-                character: this.character ? this.character.getCharacterData() : null,
-                equipment: this.equipment ? this.equipment.getEquipmentData() : null,
-                skills: this.skills ? this.skills.getSkillsData() : null,
-                combat: this.combat ? this.combat.getCombatData() : null,
-                timestamp: Date.now()
+                version: '1.0.0',
+                timestamp: Date.now(),
+                character: this.character.getCharacterData(),
+                equipment: this.equipment.getEquipmentData(),
+                skills: this.skills.getSkillsData(),
+                combat: this.combat.getCombatData()
             };
-            
+
             Storage.saveGame(saveData);
-            console.log('游戏已保存');
+            console.log('游戏保存成功');
+            
         } catch (error) {
-            console.error('保存游戏失败:', error);
+            console.error('游戏保存失败:', error);
         }
     }
 
-    // 初始化自动存档
-    initAutoSave() {
-        setInterval(() => {
-            this.saveGame();
-        }, this.settings.saveInterval);
-    }
-
-    // 添加金币
-    addGold(amount) {
-        this.gold += amount;
-        this.updateResourcesUI();
-        
-        if (this.settings.notifications) {
-            Utils.showNotification(`+${amount} 金币`, 'gold');
-        }
-    }
-
-    // 添加宝石
-    addGems(amount) {
-        this.gems += amount;
-        this.updateResourcesUI();
-        
-        if (this.settings.notifications) {
-            Utils.showNotification(`+${amount} 宝石`, 'gems');
-        }
-    }
-
-    // 角色升级事件
-    onCharacterLevelUp() {
-        // 给予技能点
-        this.skills.addSkillPoints(1);
-        
-        // 更新UI
-        this.updateAllUI();
-        
-        // 显示升级效果
-        Utils.showNotification(`升级到 ${this.character.level} 级！`, 'levelup');
-    }
-
-    // 敌人死亡事件
-    onEnemyDeath(enemy) {
-        // 给予经验和金币
-        this.character.gainExp(enemy.expReward);
-        this.addGold(enemy.goldReward);
-        
-        // 检查装备掉落
-        const drops = enemy.getDrops();
-        drops.forEach(item => {
-            if (this.equipment.addToInventory(item)) {
-                this.ui.combat.addLogEntry(`获得装备: ${item.name}`, 'equipment');
+    // 加载游戏
+    loadGame() {
+        try {
+            const saveData = Storage.loadGame();
+            
+            if (saveData) {
+                console.log('正在加载游戏数据...');
+                
+                // 加载角色数据
+                if (saveData.character) {
+                    this.character.loadCharacterData(saveData.character);
+                }
+                
+                // 加载装备数据
+                if (saveData.equipment) {
+                    this.equipment.loadEquipmentData(saveData.equipment);
+                }
+                
+                // 加载技能数据
+                if (saveData.skills) {
+                    this.skills.loadSkillsData(saveData.skills);
+                    // 让SkillUI也加载技能数据
+                    if (this.skillUI && saveData.skills.skillUI) {
+                        this.skillUI.loadSkillData(saveData.skills.skillUI);
+                    }
+                }
+                
+                // 加载战斗数据
+                if (saveData.combat) {
+                    this.combat.loadCombatData(saveData.combat);
+                }
+                
+                // 加载战斗状态（关卡进度和自动战斗）
+                this.combat.loadCombatState();
+                
+                console.log('游戏数据加载完成');
+            } else {
+                console.log('未找到存档，开始新游戏');
+                this.startNewGame();
             }
-        });
+            
+        } catch (error) {
+            console.error('游戏加载失败:', error);
+            this.startNewGame();
+        }
+    }
+
+    // 开始新游戏
+    startNewGame() {
+        console.log('开始新游戏...');
         
-        // 进入下一关
-        this.currentStage++;
-        this.ui.combat.addLogEntry(`进入第 ${this.currentStage} 关`, 'stage');
+        // 重置所有组件到初始状态
+        this.character.reset();
+        this.equipment.reset();
+        this.skills.resetSkills();
         
-        // 更新UI
-        this.updateAllUI();
+        // 重置战斗状态
+        this.combat.isActive = false;
+        this.combat.currentEnemies = [];
+        this.combat.currentEnemyIndex = 0;
+        this.combat.stage = 1;
+        
+        // 设置初始装备
+        this.giveStarterEquipment();
+        
+        console.log('新游戏初始化完成');
+    }
+
+    // 给予新手装备
+    giveStarterEquipment() {
+            // 生成一些基础装备
+        const starterEquipment = [
+            { slot: 'lefthand', level: 1, quality: 'common' },
+            { slot: 'chest', level: 1, quality: 'common' },
+            { slot: 'pants', level: 1, quality: 'common' },
+            { slot: 'boots', level: 1, quality: 'common' }
+        ];
+
+        starterEquipment.forEach(item => {
+            const equipment = this.equipment.generateRandomEquipment(item.level, item.slot, item.quality);
+            if (equipment) {
+                this.equipment.addToInventory(equipment);
+            }
+            });
+    }
+
+    // 重置游戏
+    resetGame() {
+        if (confirm('确定要重置游戏吗？这将删除所有进度！')) {
+            Storage.clearSave();
+            location.reload();
+        }
     }
 
     // 暂停游戏
-    pause() {
-        this.isPaused = true;
+    pauseGame() {
+        this.combat.pause();
+        this.stopAutoSave();
     }
 
     // 恢复游戏
-    resume() {
-        this.isPaused = false;
-        this.lastUpdate = Date.now(); // 重置时间，避免大的deltaTime
+    resumeGame() {
+        this.combat.resume();
+        this.startAutoSave();
     }
 
-    // 销毁游戏
+    // 获取游戏统计
+    getGameStats() {
+        return {
+            character: {
+                level: this.character.level,
+                exp: this.character.exp,
+                gold: this.character.gold,
+                gems: this.character.gems
+            },
+            combat: {
+                stage: this.combat.stage,
+                isActive: this.combat.isActive
+            },
+            equipment: {
+                inventoryCount: this.equipment.inventory.length,
+                equippedCount: Object.keys(this.equipment.equipped).filter(slot => this.equipment.equipped[slot]).length
+            },
+            skills: {
+                skillPoints: this.skills.points
+            }
+        };
+    }
+
+    // 处理敌人死亡事件（兼容旧版本）
+    onEnemyDeath(enemy) {
+        // 这个方法现在由Combat类直接处理
+        // 保留接口以防兼容性问题
+        console.log(`敌人 ${enemy.name} 死亡事件已由Combat类处理`);
+    }
+
+    // 销毁游戏实例
     destroy() {
+        // 停止游戏循环
         if (this.gameLoop) {
-            clearInterval(this.gameLoop);
+            cancelAnimationFrame(this.gameLoop);
             this.gameLoop = null;
         }
         
+        // 停止自动保存
+        this.stopAutoSave();
+        
         // 保存游戏
         this.saveGame();
+        
+        // 清理组件
+        this.character = null;
+        this.equipment = null;
+        this.skills = null;
+        this.combat = null;
+        
+        this.isInitialized = false;
+        console.log('游戏实例已销毁');
     }
-}
-
-// 全局游戏实例
-let game = null; 
+} 
