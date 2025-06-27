@@ -1,19 +1,30 @@
-// 技能UI管理类 - 职业标签页 + 统一分支显示
+// 技能UI管理类 - 可拖拽缩放网状图
 class SkillUI {
     constructor(skillsSystem) {
         this.skillsSystem = skillsSystem;
         this.currentClass = 'warrior';
         this.tooltip = null;
         this.learnedSkills = new Set();
-        this.connections = new Map(); // 存储连接线信息
+        this.connections = new Map();
+        
+        // 网状图控制
+        this.viewport = null;
+        this.isDragging = false;
+        this.dragStart = { x: 0, y: 0 };
+        this.currentTransform = { x: 0, y: 0, scale: 1 };
+        this.minScale = 0.3;
+        this.maxScale = 2.0;
+        
+        // 技能节点位置
+        this.skillPositions = new Map();
         
         this.initializeUI();
         this.bindEvents();
     }
 
     initializeUI() {
-        // 创建技能页面结构
         this.createSkillPageStructure();
+        this.generateSkillLayout();
     }
 
     createSkillPageStructure() {
@@ -38,11 +49,27 @@ class SkillUI {
                 `).join('')}
             </div>
             
-            <div class="skill-tree-container" id="skill-tree-container">
-                <svg class="skill-connections" id="skill-connections">
-                    <!-- 连接线将在这里动态生成 -->
-                </svg>
-                <!-- 技能分支将在这里动态生成 -->
+            <!-- 技能网状图 -->
+            <div class="skill-network-container" id="skill-network-container">
+                <div class="skill-controls">
+                    <button class="control-button" onclick="skillUI.resetView()">重置视图</button>
+                    <button class="control-button" onclick="skillUI.centerView()">居中</button>
+                </div>
+                
+                <div class="zoom-controls">
+                    <button class="zoom-button" onclick="skillUI.zoomIn()">+</button>
+                    <button class="zoom-button" onclick="skillUI.zoomOut()">-</button>
+                </div>
+                
+                <div class="zoom-level" id="zoom-level">100%</div>
+                
+                <div class="skill-network-viewport" id="skill-network-viewport">
+                    <div class="skill-network-grid"></div>
+                    <svg class="skill-connections" id="skill-connections">
+                        <!-- 连接线将在这里动态生成 -->
+                    </svg>
+                    <!-- 技能节点将在这里动态生成 -->
+                </div>
             </div>
             
             <div class="autocast-settings">
@@ -52,6 +79,8 @@ class SkillUI {
                 </div>
             </div>
         `;
+
+        this.viewport = document.getElementById('skill-network-viewport');
     }
 
     bindEvents() {
@@ -61,6 +90,23 @@ class SkillUI {
                 this.switchClass(e.target.dataset.class);
             }
         });
+
+        // 拖拽事件
+        const container = document.getElementById('skill-network-container');
+        if (container) {
+            container.addEventListener('mousedown', (e) => this.startDrag(e));
+            container.addEventListener('mousemove', (e) => this.drag(e));
+            container.addEventListener('mouseup', (e) => this.endDrag(e));
+            container.addEventListener('mouseleave', (e) => this.endDrag(e));
+
+            // 滚轮缩放
+            container.addEventListener('wheel', (e) => this.handleWheel(e));
+
+            // 触摸事件（移动端支持）
+            container.addEventListener('touchstart', (e) => this.startTouch(e));
+            container.addEventListener('touchmove', (e) => this.handleTouch(e));
+            container.addEventListener('touchend', (e) => this.endTouch(e));
+        }
         
         // 监听职业变化
         window.addEventListener('characterClassChanged', (event) => {
@@ -72,6 +118,9 @@ class SkillUI {
             this.updateSkillPoints();
             this.updateSkillStates();
         });
+
+        // 全局引用
+        window.skillUI = this;
     }
 
     switchClass(className) {
@@ -82,186 +131,149 @@ class SkillUI {
             tab.classList.toggle('active', tab.dataset.class === className);
         });
 
-        this.renderSkillTree();
+        this.generateSkillLayout();
+        this.renderSkillNetwork();
         this.updateSkillPoints();
         this.updateAutoCastSettings();
     }
 
-    // 更新UI显示
-    update() {
-        const character = window.game?.character;
-        if (character && character.class !== this.currentClass) {
-            this.updateForClass(character.class);
-        }
-        this.updateSkillPoints();
-        this.updateSkillStates();
-    }
-
-    updateForClass(characterClass) {
-        this.currentClass = characterClass;
-        
-        // 更新标签页状态
-        document.querySelectorAll('.class-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.class === characterClass);
-        });
-        
-        this.renderSkillTree();
-        this.updateSkillPoints();
-        this.updateAutoCastSettings();
-    }
-
-    renderSkillTree() {
-        const container = document.getElementById('skill-tree-container');
-        const svgContainer = document.getElementById('skill-connections');
-        if (!container || !this.currentClass) return;
+    // 生成技能布局位置
+    generateSkillLayout() {
+        if (!this.currentClass) return;
 
         const classData = SkillTreeData[this.currentClass];
         if (!classData) return;
 
-        // 清空现有内容（保留SVG）
-        const existingElements = container.querySelectorAll(':not(svg)');
-        existingElements.forEach(el => el.remove());
+        this.skillPositions.clear();
+
+        // 网状图布局算法
+        const centerX = 400;
+        const centerY = 300;
+        const branchAngle = (2 * Math.PI) / Object.keys(classData.branches).length;
+        
+        let branchIndex = 0;
+        Object.entries(classData.branches).forEach(([branchKey, branchData]) => {
+            const angle = branchIndex * branchAngle;
+            const branchCenterX = centerX + Math.cos(angle) * 200;
+            const branchCenterY = centerY + Math.sin(angle) * 200;
+            
+            let skillIndex = 0;
+            const totalSkills = Object.values(branchData.skills).flat().length;
+            
+            Object.entries(branchData.skills).forEach(([tierKey, skills]) => {
+                skills.forEach((skill, index) => {
+                    // 计算技能在分支中的位置
+                    const skillAngle = angle + (skillIndex - totalSkills / 2) * 0.3;
+                    const distance = 80 + (tierKey === 'basic' ? 0 : 
+                                         tierKey === 'advanced' ? 60 : 
+                                         tierKey === 'expert' ? 120 : 180);
+                    
+                    const x = branchCenterX + Math.cos(skillAngle) * distance;
+                    const y = branchCenterY + Math.sin(skillAngle) * distance;
+                    
+                    this.skillPositions.set(skill.id, {
+                        x: x,
+                        y: y,
+                        branch: branchKey,
+                        tier: tierKey,
+                        skill: skill
+                    });
+                    
+                    skillIndex++;
+                });
+            });
+            
+            branchIndex++;
+        });
+    }
+
+    // 渲染技能网状图
+    renderSkillNetwork() {
+        if (!this.viewport) return;
+
+        // 清空现有内容（保留网格和SVG）
+        const existingNodes = this.viewport.querySelectorAll('.skill-node');
+        existingNodes.forEach(node => node.remove());
+
+        const svgContainer = document.getElementById('skill-connections');
         svgContainer.innerHTML = '';
         this.connections.clear();
 
-        // 为每个分支创建容器
-        Object.entries(classData.branches).forEach(([branchKey, branchData]) => {
-            const branchElement = this.createBranchElement(branchKey, branchData);
-            container.appendChild(branchElement);
+        // 创建技能节点
+        this.skillPositions.forEach((position, skillId) => {
+            const skillNode = this.createSkillNode(position.skill, position.x, position.y);
+            this.viewport.appendChild(skillNode);
         });
 
         // 绘制连接线
         setTimeout(() => {
-            this.drawConnections(svgContainer, classData);
-        }, 100); // 延迟确保DOM已渲染
+            this.drawAllConnections();
+        }, 50);
 
-        // 更新技能状态
         this.updateSkillStates();
     }
 
-    createBranchElement(branchKey, branchData) {
-        const branchDiv = document.createElement('div');
-        branchDiv.className = 'skill-branch';
-        branchDiv.style.borderColor = branchData.color;
-
-        // 分支标题
-        const header = document.createElement('div');
-        header.className = 'branch-header';
-        header.innerHTML = `
-            <div class="branch-title" style="color: ${branchData.color}">
-                ${branchData.name}
-            </div>
-        `;
-
-        // 技能节点容器
-        const nodesContainer = document.createElement('div');
-        nodesContainer.className = 'skill-nodes';
-
-        // 按等级组织技能
-        const skillsByTier = this.organizeSkillsByTier(branchData.skills);
-        
-        // 创建技能节点
-        Object.entries(skillsByTier).forEach(([tierKey, skills]) => {
-            if (skills.length > 0) {
-                const tierDiv = document.createElement('div');
-                tierDiv.className = 'skill-tier';
-                tierDiv.dataset.tier = tierKey;
-                
-                skills.forEach(skill => {
-                    const skillNode = this.createSkillNode(skill, branchData.color);
-                    tierDiv.appendChild(skillNode);
-                });
-                
-                nodesContainer.appendChild(tierDiv);
-            }
-        });
-
-        branchDiv.appendChild(header);
-        branchDiv.appendChild(nodesContainer);
-
-        return branchDiv;
-    }
-
-    organizeSkillsByTier(skillsData) {
-        // 将技能按层级组织
-        const organized = {
-            basic: [],
-            advanced: [],
-            expert: [],
-            ultimate: []
-        };
-
-        Object.entries(skillsData).forEach(([tierKey, skills]) => {
-            if (organized[tierKey]) {
-                organized[tierKey] = skills;
-            }
-        });
-
-        return organized;
-    }
-
-    createSkillNode(skill, branchColor) {
+    createSkillNode(skill, x, y) {
         const node = document.createElement('div');
         node.className = 'skill-node locked';
         node.dataset.skillId = skill.id;
+        node.style.left = `${x - 40}px`; // 居中对齐
+        node.style.top = `${y - 40}px`;
+        
         node.innerHTML = `
             ${skill.icon}
             <div class="skill-level">0</div>
+            <div class="skill-name-label">${skill.name}</div>
         `;
 
         // 添加事件监听
-        node.addEventListener('click', (e) => this.handleSkillClick(e, skill));
+        node.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.handleSkillClick(e, skill);
+        });
         node.addEventListener('mouseenter', (e) => this.showTooltip(e, skill));
         node.addEventListener('mouseleave', () => this.hideTooltip());
 
         return node;
     }
 
-    drawConnections(svgContainer, classData) {
-        const container = document.getElementById('skill-tree-container');
-        const containerRect = container.getBoundingClientRect();
-        
+    // 绘制所有连接线
+    drawAllConnections() {
+        const svgContainer = document.getElementById('skill-connections');
+        const classData = SkillTreeData[this.currentClass];
+        if (!classData) return;
+
         // 设置SVG尺寸
-        svgContainer.style.width = '100%';
-        svgContainer.style.height = '100%';
-        
+        svgContainer.setAttribute('width', '100%');
+        svgContainer.setAttribute('height', '100%');
+
         // 遍历所有技能，绘制前置技能连接线
         Object.values(classData.branches).forEach(branchData => {
             Object.values(branchData.skills).flat().forEach(skill => {
                 if (skill.prerequisites && skill.prerequisites.length > 0) {
                     skill.prerequisites.forEach(prereqId => {
-                        this.drawConnection(svgContainer, prereqId, skill.id, branchData.color, containerRect);
+                        this.drawConnection(svgContainer, prereqId, skill.id, branchData.color);
                     });
                 }
             });
         });
     }
 
-    drawConnection(svgContainer, fromSkillId, toSkillId, color, containerRect) {
-        const fromNode = document.querySelector(`[data-skill-id="${fromSkillId}"]`);
-        const toNode = document.querySelector(`[data-skill-id="${toSkillId}"]`);
+    drawConnection(svgContainer, fromSkillId, toSkillId, color) {
+        const fromPos = this.skillPositions.get(fromSkillId);
+        const toPos = this.skillPositions.get(toSkillId);
         
-        if (!fromNode || !toNode) return;
-
-        const fromRect = fromNode.getBoundingClientRect();
-        const toRect = toNode.getBoundingClientRect();
-
-        // 计算相对于容器的坐标
-        const fromX = fromRect.left - containerRect.left + fromRect.width / 2;
-        const fromY = fromRect.top - containerRect.top + fromRect.height / 2;
-        const toX = toRect.left - containerRect.left + toRect.width / 2;
-        const toY = toRect.top - containerRect.top + toRect.height / 2;
+        if (!fromPos || !toPos) return;
 
         // 创建连接线
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', fromX);
-        line.setAttribute('y1', fromY);
-        line.setAttribute('x2', toX);
-        line.setAttribute('y2', toY);
-        line.setAttribute('class', 'skill-connection');
+        line.setAttribute('x1', fromPos.x);
+        line.setAttribute('y1', fromPos.y);
+        line.setAttribute('x2', toPos.x);
+        line.setAttribute('y2', toPos.y);
+        line.setAttribute('class', `skill-connection ${this.currentClass}`);
         
         // 检查连接状态
-        const character = window.game?.character;
         const fromLearned = this.learnedSkills.has(fromSkillId);
         const toLearned = this.learnedSkills.has(toSkillId);
         
@@ -271,7 +283,6 @@ class SkillUI {
             line.classList.add('prerequisite');
         }
         
-        line.style.stroke = color;
         svgContainer.appendChild(line);
         
         // 存储连接信息
@@ -282,6 +293,119 @@ class SkillUI {
         });
     }
 
+    // 拖拽控制
+    startDrag(e) {
+        if (e.target.classList.contains('skill-node')) return;
+        
+        this.isDragging = true;
+        this.dragStart.x = e.clientX - this.currentTransform.x;
+        this.dragStart.y = e.clientY - this.currentTransform.y;
+        
+        const container = document.getElementById('skill-network-container');
+        container.style.cursor = 'grabbing';
+    }
+
+    drag(e) {
+        if (!this.isDragging) return;
+        
+        e.preventDefault();
+        this.currentTransform.x = e.clientX - this.dragStart.x;
+        this.currentTransform.y = e.clientY - this.dragStart.y;
+        
+        this.updateTransform();
+    }
+
+    endDrag(e) {
+        this.isDragging = false;
+        const container = document.getElementById('skill-network-container');
+        container.style.cursor = 'grab';
+    }
+
+    // 滚轮缩放
+    handleWheel(e) {
+        e.preventDefault();
+        
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        const newScale = Math.max(this.minScale, Math.min(this.maxScale, this.currentTransform.scale * delta));
+        
+        if (newScale !== this.currentTransform.scale) {
+            // 计算缩放中心点
+            const rect = e.currentTarget.getBoundingClientRect();
+            const centerX = e.clientX - rect.left;
+            const centerY = e.clientY - rect.top;
+            
+            // 调整平移以保持缩放中心点
+            const scaleDiff = newScale / this.currentTransform.scale;
+            this.currentTransform.x = centerX - (centerX - this.currentTransform.x) * scaleDiff;
+            this.currentTransform.y = centerY - (centerY - this.currentTransform.y) * scaleDiff;
+            this.currentTransform.scale = newScale;
+            
+            this.updateTransform();
+        }
+    }
+
+    // 触摸事件处理
+    startTouch(e) {
+        if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            this.startDrag({ clientX: touch.clientX, clientY: touch.clientY, target: e.target });
+        }
+    }
+
+    handleTouch(e) {
+        e.preventDefault();
+        if (e.touches.length === 1 && this.isDragging) {
+            const touch = e.touches[0];
+            this.drag({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => {} });
+        }
+    }
+
+    endTouch(e) {
+        this.endDrag(e);
+    }
+
+    // 更新变换
+    updateTransform() {
+        if (!this.viewport) return;
+        
+        this.viewport.style.transform = `translate(${this.currentTransform.x}px, ${this.currentTransform.y}px) scale(${this.currentTransform.scale})`;
+        
+        // 更新缩放显示
+        const zoomLevel = document.getElementById('zoom-level');
+        if (zoomLevel) {
+            zoomLevel.textContent = `${Math.round(this.currentTransform.scale * 100)}%`;
+        }
+    }
+
+    // 缩放控制
+    zoomIn() {
+        const newScale = Math.min(this.maxScale, this.currentTransform.scale * 1.2);
+        this.currentTransform.scale = newScale;
+        this.updateTransform();
+    }
+
+    zoomOut() {
+        const newScale = Math.max(this.minScale, this.currentTransform.scale / 1.2);
+        this.currentTransform.scale = newScale;
+        this.updateTransform();
+    }
+
+    resetView() {
+        this.currentTransform = { x: 0, y: 0, scale: 1 };
+        this.updateTransform();
+    }
+
+    centerView() {
+        const container = document.getElementById('skill-network-container');
+        if (!container) return;
+        
+        const rect = container.getBoundingClientRect();
+        this.currentTransform.x = rect.width / 2 - 400; // 400是布局中心X
+        this.currentTransform.y = rect.height / 2 - 300; // 300是布局中心Y
+        this.updateTransform();
+    }
+
+    // 技能点击处理
     handleSkillClick(event, skill) {
         event.preventDefault();
         
@@ -399,6 +523,30 @@ class SkillUI {
             }
         }
         return null;
+    }
+
+    // 更新UI显示
+    update() {
+        const character = window.game?.character;
+        if (character && character.class !== this.currentClass) {
+            this.updateForClass(character.class);
+        }
+        this.updateSkillPoints();
+        this.updateSkillStates();
+    }
+
+    updateForClass(characterClass) {
+        this.currentClass = characterClass;
+        
+        // 更新标签页状态
+        document.querySelectorAll('.class-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.class === characterClass);
+        });
+        
+        this.generateSkillLayout();
+        this.renderSkillNetwork();
+        this.updateSkillPoints();
+        this.updateAutoCastSettings();
     }
 
     updateSkillPoints() {
@@ -582,7 +730,8 @@ class SkillUI {
     saveSkillData() {
         return {
             learnedSkills: Array.from(this.learnedSkills),
-            currentClass: this.currentClass
+            currentClass: this.currentClass,
+            transform: this.currentTransform
         };
     }
 
@@ -591,6 +740,11 @@ class SkillUI {
         if (data) {
             this.learnedSkills = new Set(data.learnedSkills || []);
             this.currentClass = data.currentClass || 'warrior';
+            
+            if (data.transform) {
+                this.currentTransform = { ...data.transform };
+                this.updateTransform();
+            }
             
             // 恢复技能系统状态
             this.learnedSkills.forEach(skillId => {

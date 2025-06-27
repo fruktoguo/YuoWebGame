@@ -1,16 +1,19 @@
-/* 技能页面样式 - 职业标签页 + 统一分支显示 */
+/* 技能页面样式 - 可拖拽缩放网状图 */
 .skills-page {
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     min-height: 100vh;
+    overflow: hidden;
 }
 
 .skills-header {
     text-align: center;
     margin-bottom: 30px;
     color: white;
+    position: relative;
+    z-index: 100;
 }
 
 .skills-header h2 {
@@ -30,9 +33,11 @@
 .class-tabs {
     display: flex;
     justify-content: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     gap: 10px;
     flex-wrap: wrap;
+    position: relative;
+    z-index: 100;
 }
 
 .class-tab {
@@ -61,79 +66,64 @@
     box-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
 }
 
-/* 技能树容器 - 网格布局显示所有分支 */
-.skill-tree-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 30px;
-    margin-bottom: 30px;
-    position: relative;
-}
-
-/* 单个分支容器 */
-.skill-branch {
-    background: rgba(255, 255, 255, 0.1);
+/* 技能网状图容器 */
+.skill-network-container {
+    width: 100%;
+    height: 600px;
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 15px;
-    padding: 20px;
-    backdrop-filter: blur(10px);
     border: 2px solid rgba(255, 255, 255, 0.2);
-    transition: transform 0.3s ease;
     position: relative;
+    overflow: hidden;
+    cursor: grab;
+    margin-bottom: 20px;
 }
 
-.skill-branch:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+.skill-network-container:active {
+    cursor: grabbing;
 }
 
-/* 分支标题 */
-.branch-header {
-    text-align: center;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.branch-title {
-    font-size: 1.8em;
-    font-weight: bold;
-    margin-bottom: 5px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-}
-
-/* 技能节点容器 */
-.skill-nodes {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+/* 技能网状图视口 */
+.skill-network-viewport {
+    width: 100%;
+    height: 100%;
     position: relative;
+    transform-origin: 0 0;
+    transition: transform 0.1s ease-out;
 }
 
-/* 技能等级组 */
-.skill-tier {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    position: relative;
+/* 网格背景 */
+.skill-network-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.1;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
 }
 
 /* 技能节点 */
 .skill-node {
-    width: 60px;
-    height: 60px;
+    position: absolute;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5em;
+    font-size: 2em;
     cursor: pointer;
     transition: all 0.3s ease;
-    position: relative;
-    border: 3px solid;
+    border: 4px solid;
     background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.3) 100%);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    user-select: none;
+    z-index: 10;
 }
 
 /* 技能节点状态 */
@@ -167,8 +157,8 @@
 }
 
 .skill-node:hover:not(.locked) {
-    transform: scale(1.1);
-    z-index: 10;
+    transform: scale(1.15);
+    z-index: 20;
 }
 
 /* 可用技能脉冲动画 */
@@ -177,25 +167,48 @@
         box-shadow: 0 0 20px rgba(76,175,80,0.3);
     }
     50% {
-        box-shadow: 0 0 30px rgba(76,175,80,0.6);
+        box-shadow: 0 0 40px rgba(76,175,80,0.8);
     }
 }
 
 /* 技能等级显示 */
 .skill-level {
     position: absolute;
-    bottom: -5px;
-    right: -5px;
-    background: rgba(0,0,0,0.8);
+    bottom: -8px;
+    right: -8px;
+    background: rgba(0,0,0,0.9);
     color: white;
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8em;
+    font-size: 0.6em;
     font-weight: bold;
+    border: 2px solid #333;
+}
+
+/* 技能名称标签 */
+.skill-name-label {
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.4em;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 15;
+}
+
+.skill-node:hover .skill-name-label {
+    opacity: 1;
 }
 
 /* SVG连接线容器 */
@@ -213,32 +226,96 @@
 /* 技能连接线 */
 .skill-connection {
     stroke-width: 3;
-    stroke-opacity: 0.3;
+    stroke-opacity: 0.4;
     transition: all 0.3s ease;
+    fill: none;
 }
 
 .skill-connection.prerequisite {
-    stroke-opacity: 0.6;
-    stroke-dasharray: 5,5;
+    stroke-opacity: 0.7;
+    stroke-dasharray: 8,4;
 }
 
 .skill-connection.active {
     stroke-opacity: 1;
     stroke-width: 4;
-    filter: drop-shadow(0 0 5px currentColor);
+    filter: drop-shadow(0 0 8px currentColor);
 }
 
-/* 连接线 */
-.skill-connection line {
-    stroke: #444;
-    stroke-width: 2;
-    opacity: 0.6;
+/* 连接线颜色 */
+.skill-connection.warrior { stroke: #ff6b6b; }
+.skill-connection.mage { stroke: #4ecdc4; }
+.skill-connection.tank { stroke: #45b7d1; }
+.skill-connection.priest { stroke: #f9ca24; }
+.skill-connection.assassin { stroke: #6c5ce7; }
+.skill-connection.archer { stroke: #a0e7e5; }
+
+/* 控制面板 */
+.skill-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
 }
 
-.skill-connection.active line {
-    stroke: #ffd700;
-    stroke-width: 3;
-    opacity: 1;
+.control-button {
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background 0.3s ease;
+}
+
+.control-button:hover {
+    background: rgba(0,0,0,0.9);
+}
+
+/* 缩放控制 */
+.zoom-controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 100;
+}
+
+.zoom-button {
+    width: 40px;
+    height: 40px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+}
+
+.zoom-button:hover {
+    background: rgba(0,0,0,0.9);
+}
+
+/* 缩放级别显示 */
+.zoom-level {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    z-index: 100;
 }
 
 /* 技能工具提示 */
@@ -252,7 +329,7 @@
     max-width: 300px;
     z-index: 1000;
     border: 2px solid #ffd700;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.8);
     pointer-events: none;
     opacity: 0;
     transform: translateY(10px);
@@ -376,19 +453,14 @@
         font-size: 0.9em;
     }
     
-    .skill-tree-container {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    
-    .skill-branch {
-        padding: 15px;
+    .skill-network-container {
+        height: 400px;
     }
     
     .skill-node {
-        width: 50px;
-        height: 50px;
-        font-size: 1.2em;
+        width: 60px;
+        height: 60px;
+        font-size: 1.5em;
     }
     
     .skill-tooltip {
@@ -411,13 +483,13 @@
         font-size: 1.2em;
     }
     
-    .skill-node {
-        width: 45px;
-        height: 45px;
-        font-size: 1em;
+    .skill-network-container {
+        height: 350px;
     }
     
-    .branch-title {
-        font-size: 1.5em;
+    .skill-node {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2em;
     }
 } 

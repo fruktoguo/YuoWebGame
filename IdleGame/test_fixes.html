@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修复测试页面 - 放置挂机战斗游戏</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+        }
+        .test-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .result {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>技能系统修复测试页面</h1>
+    
+    <div class="test-section">
+        <h2>1. 升级技能点测试</h2>
+        <p>测试角色升级时是否正确获得技能点</p>
+        <button class="test-button" onclick="testLevelUpSkillPoints()">测试升级技能点</button>
+        <div id="levelup-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 职业标签页测试</h2>
+        <p>测试职业标签页是否正确显示和切换</p>
+        <button class="test-button" onclick="testClassTabs()">测试职业标签页</button>
+        <div id="tabs-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 技能树连线测试</h2>
+        <p>测试技能树是否正确显示连接线</p>
+        <button class="test-button" onclick="testSkillConnections()">测试技能树连线</button>
+        <div id="connections-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. 重置技能点测试</h2>
+        <p>测试重置技能点功能是否正常工作</p>
+        <button class="test-button" onclick="testResetSkillPoints()">测试重置技能点</button>
+        <div id="reset-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. 存档加载测试</h2>
+        <p>测试技能点是否正确保存和加载</p>
+        <button class="test-button" onclick="testSaveLoad()">测试存档加载</button>
+        <div id="saveload-result" class="result"></div>
+    </div>
+    
+    <script>
+        // 等待游戏初始化
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (window.game) {
+                    document.getElementById('levelup-result').innerHTML = '<span style="color: #4CAF50;">✓ 游戏已加载，可以开始测试</span>';
+                } else {
+                    document.getElementById('levelup-result').innerHTML = '<span style="color: #f44336;">✗ 游戏未加载，请先访问主页面</span>';
+                }
+            }, 1000);
+        });
+        
+        function testLevelUpSkillPoints() {
+            const result = document.getElementById('levelup-result');
+            
+            if (!window.game) {
+                result.innerHTML = '<span style="color: #f44336;">✗ 游戏未加载</span>';
+                return;
+            }
+            
+            const character = window.game.character;
+            const oldLevel = character.level;
+            const oldSkillPoints = character.skillPoints || 0;
+            const oldExp = character.exp;
+            
+            // 给角色足够的经验升级
+            character.gainExp(1000);
+            
+            const newLevel = character.level;
+            const newSkillPoints = character.skillPoints || 0;
+            
+            const levelGained = newLevel - oldLevel;
+            const skillPointsGained = newSkillPoints - oldSkillPoints;
+            
+            result.innerHTML = `
+                <strong>升级测试结果：</strong><br>
+                旧等级: ${oldLevel} → 新等级: ${newLevel}<br>
+                旧技能点: ${oldSkillPoints} → 新技能点: ${newSkillPoints}<br>
+                升级次数: ${levelGained}<br>
+                获得技能点: ${skillPointsGained}<br>
+                ${levelGained === skillPointsGained ? 
+                    '<span style="color: #4CAF50;">✓ 技能点获得正确 (每级1点)</span>' : 
+                    '<span style="color: #f44336;">✗ 技能点获得错误</span>'}
+            `;
+        }
+        
+        function testClassTabs() {
+            const result = document.getElementById('tabs-result');
+            
+            if (!window.game || !window.game.ui.skill) {
+                result.innerHTML = '<span style="color: #f44336;">✗ 技能UI未加载</span>';
+                return;
+            }
+            
+            const tabs = document.querySelectorAll('.class-tab');
+            const activeTab = document.querySelector('.class-tab.active');
+            
+            result.innerHTML = `
+                <strong>职业标签页测试结果：</strong><br>
+                标签页数量: ${tabs.length}<br>
+                当前激活标签: ${activeTab ? activeTab.textContent : '无'}<br>
+                ${tabs.length >= 6 ? 
+                    '<span style="color: #4CAF50;">✓ 职业标签页显示正常</span>' : 
+                    '<span style="color: #f44336;">✗ 职业标签页数量不足</span>'}
+            `;
+        }
+        
+        function testSkillConnections() {
+            const result = document.getElementById('connections-result');
+            
+            const svgContainer = document.getElementById('skill-connections');
+            const connections = svgContainer ? svgContainer.querySelectorAll('line') : [];
+            
+            result.innerHTML = `
+                <strong>技能树连线测试结果：</strong><br>
+                SVG容器: ${svgContainer ? '存在' : '不存在'}<br>
+                连接线数量: ${connections.length}<br>
+                ${connections.length > 0 ? 
+                    '<span style="color: #4CAF50;">✓ 技能树连线显示正常</span>' : 
+                    '<span style="color: #f44336;">✗ 技能树连线未显示</span>'}
+            `;
+        }
+        
+        function testResetSkillPoints() {
+            const result = document.getElementById('reset-result');
+            
+            if (!window.game) {
+                result.innerHTML = '<span style="color: #f44336;">✗ 游戏未加载</span>';
+                return;
+            }
+            
+            try {
+                const character = window.game.character;
+                const oldSkillPoints = character.skillPoints || 0;
+                const expectedSkillPoints = Math.max(0, character.level - 1);
+                
+                // 测试重置功能是否存在
+                if (typeof debugResetSkillPoints === 'function') {
+                    debugResetSkillPoints();
+                    
+                    const newSkillPoints = character.skillPoints || 0;
+                    
+                    result.innerHTML = `
+                        <strong>重置技能点测试结果：</strong><br>
+                        重置前技能点: ${oldSkillPoints}<br>
+                        重置后技能点: ${newSkillPoints}<br>
+                        期望技能点: ${expectedSkillPoints}<br>
+                        ${newSkillPoints === expectedSkillPoints ? 
+                            '<span style="color: #4CAF50;">✓ 重置技能点功能正常</span>' : 
+                            '<span style="color: #f44336;">✗ 重置技能点功能异常</span>'}
+                    `;
+                } else {
+                    result.innerHTML = '<span style="color: #f44336;">✗ debugResetSkillPoints函数未定义</span>';
+                }
+            } catch (error) {
+                result.innerHTML = `<span style="color: #f44336;">✗ 重置测试出错: ${error.message}</span>`;
+            }
+        }
+        
+        function testSaveLoad() {
+            const result = document.getElementById('saveload-result');
+            
+            if (!window.game) {
+                result.innerHTML = '<span style="color: #f44336;">✗ 游戏未加载</span>';
+                return;
+            }
+            
+            try {
+                const character = window.game.character;
+                const originalSkillPoints = character.skillPoints || 0;
+                
+                // 保存游戏
+                window.game.saveGame();
+                
+                // 修改技能点
+                character.skillPoints = 999;
+                
+                // 重新加载游戏
+                window.game.loadGame();
+                
+                const loadedSkillPoints = character.skillPoints || 0;
+                
+                result.innerHTML = `
+                    <strong>存档加载测试结果：</strong><br>
+                    原始技能点: ${originalSkillPoints}<br>
+                    临时修改为: 999<br>
+                    加载后技能点: ${loadedSkillPoints}<br>
+                    ${loadedSkillPoints === originalSkillPoints ? 
+                        '<span style="color: #4CAF50;">✓ 技能点存档加载正常</span>' : 
+                        '<span style="color: #f44336;">✗ 技能点存档加载异常</span>'}
+                `;
+            } catch (error) {
+                result.innerHTML = `<span style="color: #f44336;">✗ 存档测试出错: ${error.message}</span>`;
+            }
+        }
+    </script>
+    
+    <!-- 引入游戏脚本 -->
+    <script src="js/utils/Utils.js"></script>
+    <script src="js/utils/Calculator.js"></script>
+    <script src="js/utils/Storage.js"></script>
+    <script src="js/data/texts.js"></script>
+    <script src="js/data/classes.js"></script>
+    <script src="js/data/skills.js"></script>
+    <script src="js/data/equipment.js"></script>
+    <script src="js/data/monsters.js"></script>
+    <script src="js/core/Character.js"></script>
+    <script src="js/core/Equipment.js"></script>
+    <script src="js/core/Skills.js"></script>
+    <script src="js/core/Combat.js"></script>
+    <script src="js/core/Game.js"></script>
+    <script src="js/ui/CharacterUI.js"></script>
+    <script src="js/ui/CombatUI.js"></script>
+    <script src="js/ui/EquipmentUI.js"></script>
+    <script src="js/ui/SkillUI.js"></script>
+    <script src="js/debug.js"></script>
+    
+    <script>
+        // 初始化游戏
+        window.addEventListener('load', async () => {
+            try {
+                window.game = new Game();
+                await window.game.init();
+                console.log('测试页面游戏初始化完成');
+            } catch (error) {
+                console.error('测试页面游戏初始化失败:', error);
+            }
+        });
+    </script>
+</body>
+</html> 
