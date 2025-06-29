@@ -1,4 +1,4 @@
-// 技能UI管理类 - 可拖拽缩放网状图
+// 技能UI管理类 - 基于五属性的极坐标依赖驱动布局
 class SkillUI {
     constructor(skillsSystem) {
         this.skillsSystem = skillsSystem;
@@ -12,19 +12,41 @@ class SkillUI {
         this.isDragging = false;
         this.dragStart = { x: 0, y: 0 };
         this.currentTransform = { x: 0, y: 0, scale: 1 };
-        this.minScale = 0.3;
-        this.maxScale = 2.0;
+        this.minScale = 0.2;
+        this.maxScale = 3.0;
         
-        // 技能节点位置
-        this.skillPositions = new Map();
+        // 性能优化
+        this.dragThrottle = null;
+        this.isTransforming = false;
         
-        this.initializeUI();
-        this.bindEvents();
+        // 新的极坐标布局系统
+        this.centerX = 1000;
+        this.centerY = 1000;
+        this.skillPositions = new Map(); // 存储所有技能节点的极坐标位置
+        this.baseAttributeNodes = new Map(); // 五个基础属性节点
+        this.dependencyGraph = new Map(); // 技能依赖图
+        this.baseExtensionDistance = 120; // 基础延伸距离
+        
+        // 延迟初始化，确保所有脚本都已加载
+        setTimeout(() => {
+            this.initializeUI();
+            this.bindEvents();
+        }, 0);
     }
 
     initializeUI() {
+        // 如果数据还没加载，再等一下
+        if (!window.SkillTreeData) {
+            console.warn('SkillTreeData not ready, retrying in 100ms...');
+            setTimeout(() => this.initializeUI(), 100);
+            return;
+        }
+        
         this.createSkillPageStructure();
-        this.generateSkillLayout();
+        this.initializeBaseAttributes();
+        this.buildSkillDependencyGraph();
+        this.calculateAllNodePositions();
+        this.renderAllSkillNodes();
     }
 
     createSkillPageStructure() {
@@ -33,20 +55,13 @@ class SkillUI {
 
         skillsPage.innerHTML = `
             <div class="skills-header">
-                <h2>技能树</h2>
+                <h2>技能树 - 五属性体系</h2>
                 <div class="skill-points-display">
                     可用技能点: <span id="available-skill-points">0</span>
                 </div>
-            </div>
-            
-            <!-- 职业标签页 -->
-            <div class="class-tabs" id="class-tabs">
-                ${Object.keys(SkillTreeData).map(className => `
-                    <button class="class-tab ${className === this.currentClass ? 'active' : ''}" 
-                            data-class="${className}">
-                        ${SkillTreeData[className].name}
-                    </button>
-                `).join('')}
+                <div class="current-class-display">
+                    当前职业: <span id="current-class-name">战士</span>
+                </div>
             </div>
             
             <!-- 技能网状图 -->
@@ -54,6 +69,7 @@ class SkillUI {
                 <div class="skill-controls">
                     <button class="control-button" onclick="skillUI.resetView()">重置视图</button>
                     <button class="control-button" onclick="skillUI.centerView()">居中</button>
+                    <button class="control-button" onclick="skillUI.focusCurrentClass()">聚焦当前职业</button>
                 </div>
                 
                 <div class="zoom-controls">
@@ -65,6 +81,10 @@ class SkillUI {
                 
                 <div class="skill-network-viewport" id="skill-network-viewport">
                     <div class="skill-network-grid"></div>
+                    <div class="skill-radial-lines" id="skill-radial-lines">
+                        <!-- 五属性辐射线 -->
+                    </div>
+                    <div class="skill-network-center"></div>
                     <svg class="skill-connections" id="skill-connections">
                         <!-- 连接线将在这里动态生成 -->
                     </svg>
@@ -83,29 +103,251 @@ class SkillUI {
         this.viewport = document.getElementById('skill-network-viewport');
     }
 
-    bindEvents() {
-        // 职业标签页切换
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('class-tab')) {
-                this.switchClass(e.target.dataset.class);
+    // 初始化五个基础属性节点
+    initializeBaseAttributes() {
+        const baseAttributes = [
+            { id: 'base_strength', name: '力量', icon: '💪', description: '增加物理伤害和生命值', color: '#e74c3c' },
+            { id: 'base_dexterity', name: '敏捷', icon: '🏃', description: '增加攻击速度和闪避', color: '#27ae60' },
+            { id: 'base_intelligence', name: '智力', icon: '🧠', description: '增加魔法伤害和法力值', color: '#3498db' },
+            { id: 'base_constitution', name: '体质', icon: '❤️', description: '增加生命值和防御力', color: '#f39c12' },
+            { id: 'base_spirit', name: '精神', icon: '✨', description: '增加法力回复和抗性', color: '#9b59b6' }
+        ];
+
+        // 按72度间隔排布五个基础属性
+        baseAttributes.forEach((attr, index) => {
+            const angle = (index * 72) * Math.PI / 180; // 转换为弧度
+            const distance = 200; // 距离中心的距离
+            
+            const position = {
+                angle: angle,
+                distance: distance,
+                x: this.centerX + Math.cos(angle) * distance,
+                y: this.centerY + Math.sin(angle) * distance,
+                skill: {
+                    id: attr.id,
+                    name: attr.name,
+                    icon: attr.icon,
+                    description: attr.description,
+                    type: 'base_attribute',
+                    cost: 0,
+                    prerequisites: [],
+                    effects: {}
+                },
+                nodeType: 'base_attribute',
+                color: attr.color
+            };
+            
+            this.baseAttributeNodes.set(attr.id, position);
+            this.skillPositions.set(attr.id, position);
+        });
+    }
+
+    // 构建技能依赖图
+    buildSkillDependencyGraph() {
+        this.dependencyGraph.clear();
+        
+        // 检查 SkillTreeData 是否存在
+        if (!window.SkillTreeData) {
+            console.error('SkillTreeData is not defined in buildSkillDependencyGraph');
+            return;
+        }
+        
+        // 遍历所有属性的技能数据
+        Object.values(window.SkillTreeData).forEach((attributeData, index) => {
+            if (!attributeData) {
+                console.warn(`AttributeData at index ${index} is undefined`);
+                return;
             }
+            
+            if (!attributeData.skills) {
+                console.warn(`AttributeData.skills is undefined for:`, attributeData);
+                return;
+            }
+            
+            attributeData.skills.forEach(skill => {
+                if (!skill || !skill.id) {
+                    console.warn('Invalid skill data:', skill);
+                    return;
+                }
+                
+                this.dependencyGraph.set(skill.id, {
+                    skill: skill,
+                    dependencies: skill.prerequisites || [],
+                    dependents: [],
+                    attributeType: this.determineAttributeType(skill)
+                });
+            });
         });
 
-        // 拖拽事件
+        // 建立反向依赖关系
+        this.dependencyGraph.forEach((node, skillId) => {
+            node.dependencies.forEach(depId => {
+                const depNode = this.dependencyGraph.get(depId);
+                if (depNode) {
+                    depNode.dependents.push(skillId);
+                }
+            });
+        });
+        
+        console.log('Dependency graph built with', this.dependencyGraph.size, 'skills');
+    }
+
+    // 确定技能的主要属性类型
+    determineAttributeType(skill) {
+        // 根据技能ID前缀直接确定属性类型
+        if (skill.id.startsWith('strength_')) {
+            return 'base_strength';
+        } else if (skill.id.startsWith('dexterity_')) {
+            return 'base_dexterity';
+        } else if (skill.id.startsWith('intelligence_')) {
+            return 'base_intelligence';
+        } else if (skill.id.startsWith('constitution_')) {
+            return 'base_constitution';
+        } else if (skill.id.startsWith('spirit_')) {
+            return 'base_spirit';
+        }
+        
+        // 如果是基础属性节点本身
+        if (skill.type === 'base_attribute') {
+            return skill.id;
+        }
+        
+        // 默认返回力量
+        return 'base_strength';
+    }
+
+    // 计算所有节点位置
+    calculateAllNodePositions() {
+        // 使用拓扑排序确保依赖节点先计算位置
+        const visited = new Set();
+        const calculating = new Set();
+        
+        // 为没有前置条件的技能分配基础属性依赖
+        this.dependencyGraph.forEach((node, skillId) => {
+            if (node.dependencies.length === 0) {
+                // 没有依赖的技能，添加对应的基础属性作为依赖
+                node.dependencies.push(node.attributeType);
+            }
+        });
+        
+        // 递归计算所有节点位置
+        this.dependencyGraph.forEach((node, skillId) => {
+            this.calculateNodePosition(skillId, visited, calculating);
+        });
+    }
+
+    // 递归计算单个节点位置
+    calculateNodePosition(skillId, visited, calculating) {
+        if (visited.has(skillId)) return;
+        if (calculating.has(skillId)) {
+            console.warn(`循环依赖检测到: ${skillId}`);
+            return;
+        }
+        
+        // 如果是基础属性节点，已经计算过位置
+        if (this.baseAttributeNodes.has(skillId)) {
+            visited.add(skillId);
+            return;
+        }
+        
+        const node = this.dependencyGraph.get(skillId);
+        if (!node) return;
+        
+        calculating.add(skillId);
+        
+        // 确保所有依赖节点都已计算位置
+        const dependencyPositions = [];
+        node.dependencies.forEach(depId => {
+            this.calculateNodePosition(depId, visited, calculating);
+            const depPos = this.skillPositions.get(depId);
+            if (depPos) {
+                dependencyPositions.push(depPos);
+            }
+        });
+        
+        calculating.delete(skillId);
+        
+        // 计算当前节点位置
+        if (dependencyPositions.length > 0) {
+            const position = this.calculatePositionFromDependencies(node.skill, dependencyPositions);
+            this.skillPositions.set(skillId, position);
+        }
+        
+        visited.add(skillId);
+    }
+
+    // 根据依赖节点计算新节点位置
+    calculatePositionFromDependencies(skill, dependencyPositions) {
+        let centerAngle, centerDistance;
+        
+        if (dependencyPositions.length === 1) {
+            // 单依赖：沿依赖节点角度向外延伸
+            const dep = dependencyPositions[0];
+            centerAngle = dep.angle;
+            centerDistance = dep.distance + this.baseExtensionDistance;
+        } else {
+            // 多依赖：计算依赖节点的质心位置
+            let totalX = 0, totalY = 0;
+            dependencyPositions.forEach(pos => {
+                totalX += pos.x;
+                totalY += pos.y;
+            });
+            
+            const centerX = totalX / dependencyPositions.length;
+            const centerY = totalY / dependencyPositions.length;
+            
+            // 计算质心相对于中心的角度和距离
+            const deltaX = centerX - this.centerX;
+            const deltaY = centerY - this.centerY;
+            centerAngle = Math.atan2(deltaY, deltaX);
+            centerDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY) + this.baseExtensionDistance;
+        }
+        
+        // 添加一些随机偏移避免节点重叠
+        const angleOffset = (Math.random() - 0.5) * 0.3; // ±0.15弧度的角度偏移
+        const distanceOffset = (Math.random() - 0.5) * 40; // ±20像素的距离偏移
+        
+        const finalAngle = centerAngle + angleOffset;
+        const finalDistance = Math.max(100, centerDistance + distanceOffset); // 确保最小距离
+        
+        const x = this.centerX + Math.cos(finalAngle) * finalDistance;
+        const y = this.centerY + Math.sin(finalAngle) * finalDistance;
+        
+        return {
+            angle: finalAngle,
+            distance: finalDistance,
+            x: x,
+            y: y,
+            skill: skill,
+            nodeType: this.getNodeType(skill),
+            dependencies: dependencyPositions.map(pos => pos.skill.id)
+        };
+    }
+
+    // 确定节点类型
+    getNodeType(skill) {
+        if (skill.type === 'base_attribute') return 'base_attribute';
+        if (skill.cost >= 4) return 'keystone';
+        if (skill.cost >= 2) return 'notable';
+        return 'small';
+    }
+
+    bindEvents() {
+        // 拖拽事件（性能优化）
         const container = document.getElementById('skill-network-container');
         if (container) {
-            container.addEventListener('mousedown', (e) => this.startDrag(e));
-            container.addEventListener('mousemove', (e) => this.drag(e));
-            container.addEventListener('mouseup', (e) => this.endDrag(e));
-            container.addEventListener('mouseleave', (e) => this.endDrag(e));
+            container.addEventListener('mousedown', (e) => this.startDrag(e), { passive: false });
+            container.addEventListener('mousemove', (e) => this.throttledDrag(e), { passive: false });
+            container.addEventListener('mouseup', (e) => this.endDrag(e), { passive: true });
+            container.addEventListener('mouseleave', (e) => this.endDrag(e), { passive: true });
 
-            // 滚轮缩放
-            container.addEventListener('wheel', (e) => this.handleWheel(e));
+            // 滚轮缩放（性能优化）
+            container.addEventListener('wheel', (e) => this.throttledWheel(e), { passive: false });
 
-            // 触摸事件（移动端支持）
-            container.addEventListener('touchstart', (e) => this.startTouch(e));
-            container.addEventListener('touchmove', (e) => this.handleTouch(e));
-            container.addEventListener('touchend', (e) => this.endTouch(e));
+            // 触摸事件
+            container.addEventListener('touchstart', (e) => this.startTouch(e), { passive: false });
+            container.addEventListener('touchmove', (e) => this.handleTouch(e), { passive: false });
+            container.addEventListener('touchend', (e) => this.endTouch(e), { passive: true });
         }
         
         // 监听职业变化
@@ -123,75 +365,11 @@ class SkillUI {
         window.skillUI = this;
     }
 
-    switchClass(className) {
-        this.currentClass = className;
-        
-        // 更新标签页状态
-        document.querySelectorAll('.class-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.class === className);
-        });
-
-        this.generateSkillLayout();
-        this.renderSkillNetwork();
-        this.updateSkillPoints();
-        this.updateAutoCastSettings();
-    }
-
-    // 生成技能布局位置
-    generateSkillLayout() {
-        if (!this.currentClass) return;
-
-        const classData = SkillTreeData[this.currentClass];
-        if (!classData) return;
-
-        this.skillPositions.clear();
-
-        // 网状图布局算法
-        const centerX = 400;
-        const centerY = 300;
-        const branchAngle = (2 * Math.PI) / Object.keys(classData.branches).length;
-        
-        let branchIndex = 0;
-        Object.entries(classData.branches).forEach(([branchKey, branchData]) => {
-            const angle = branchIndex * branchAngle;
-            const branchCenterX = centerX + Math.cos(angle) * 200;
-            const branchCenterY = centerY + Math.sin(angle) * 200;
-            
-            let skillIndex = 0;
-            const totalSkills = Object.values(branchData.skills).flat().length;
-            
-            Object.entries(branchData.skills).forEach(([tierKey, skills]) => {
-                skills.forEach((skill, index) => {
-                    // 计算技能在分支中的位置
-                    const skillAngle = angle + (skillIndex - totalSkills / 2) * 0.3;
-                    const distance = 80 + (tierKey === 'basic' ? 0 : 
-                                         tierKey === 'advanced' ? 60 : 
-                                         tierKey === 'expert' ? 120 : 180);
-                    
-                    const x = branchCenterX + Math.cos(skillAngle) * distance;
-                    const y = branchCenterY + Math.sin(skillAngle) * distance;
-                    
-                    this.skillPositions.set(skill.id, {
-                        x: x,
-                        y: y,
-                        branch: branchKey,
-                        tier: tierKey,
-                        skill: skill
-                    });
-                    
-                    skillIndex++;
-                });
-            });
-            
-            branchIndex++;
-        });
-    }
-
-    // 渲染技能网状图
-    renderSkillNetwork() {
+    // 渲染所有技能节点
+    renderAllSkillNodes() {
         if (!this.viewport) return;
 
-        // 清空现有内容（保留网格和SVG）
+        // 清空现有内容
         const existingNodes = this.viewport.querySelectorAll('.skill-node');
         existingNodes.forEach(node => node.remove());
 
@@ -199,9 +377,9 @@ class SkillUI {
         svgContainer.innerHTML = '';
         this.connections.clear();
 
-        // 创建技能节点
+        // 创建所有技能节点
         this.skillPositions.forEach((position, skillId) => {
-            const skillNode = this.createSkillNode(position.skill, position.x, position.y);
+            const skillNode = this.createSkillNode(position.skill, position.x, position.y, position.nodeType);
             this.viewport.appendChild(skillNode);
         });
 
@@ -213,17 +391,61 @@ class SkillUI {
         this.updateSkillStates();
     }
 
-    createSkillNode(skill, x, y) {
+    createSkillNode(skill, x, y, nodeType) {
         const node = document.createElement('div');
-        node.className = 'skill-node locked';
+        
+        // 根据节点类型设置类名和尺寸
+        let nodeClasses = `skill-node locked`;
+        let offsetX = 16, offsetY = 16; // 默认小节点的偏移
+        
+        switch (nodeType) {
+            case 'small':
+                nodeClasses += ' small-node';
+                offsetX = offsetY = 16;
+                break;
+            case 'notable':
+                nodeClasses += ' notable-node';
+                offsetX = offsetY = 24;
+                break;
+            case 'keystone':
+                nodeClasses += ' keystone-node';
+                offsetX = offsetY = 32;
+                break;
+            case 'core':
+                nodeClasses += ' core-node';
+                offsetX = offsetY = 40;
+                break;
+            case 'base_attribute':
+                nodeClasses += ' base-attribute-node';
+                offsetX = offsetY = 48;
+                break;
+        }
+        
+        node.className = nodeClasses;
         node.dataset.skillId = skill.id;
-        node.style.left = `${x - 40}px`; // 居中对齐
-        node.style.top = `${y - 40}px`;
+        node.dataset.nodeType = nodeType;
+        node.style.left = `${x - offsetX}px`;
+        node.style.top = `${y - offsetY}px`;
+        
+        // 根据节点类型显示不同内容
+        let classLabel = '';
+        if (nodeType !== 'base_attribute') {
+            const attrType = this.determineAttributeType(skill);
+            const attrNames = {
+                'base_strength': '力量',
+                'base_dexterity': '敏捷', 
+                'base_intelligence': '智力',
+                'base_constitution': '体质',
+                'base_spirit': '精神'
+            };
+            classLabel = `<div class="skill-class-label">${attrNames[attrType] || '通用'}</div>`;
+        }
         
         node.innerHTML = `
             ${skill.icon}
             <div class="skill-level">0</div>
             <div class="skill-name-label">${skill.name}</div>
+            ${classLabel}
         `;
 
         // 添加事件监听
@@ -240,26 +462,30 @@ class SkillUI {
     // 绘制所有连接线
     drawAllConnections() {
         const svgContainer = document.getElementById('skill-connections');
-        const classData = SkillTreeData[this.currentClass];
-        if (!classData) return;
-
+        if (!svgContainer) return;
+        
+        // 清除现有连接线
+        svgContainer.innerHTML = '';
+        this.connections.clear();
+        
         // 设置SVG尺寸
         svgContainer.setAttribute('width', '100%');
         svgContainer.setAttribute('height', '100%');
 
-        // 遍历所有技能，绘制前置技能连接线
-        Object.values(classData.branches).forEach(branchData => {
-            Object.values(branchData.skills).flat().forEach(skill => {
-                if (skill.prerequisites && skill.prerequisites.length > 0) {
-                    skill.prerequisites.forEach(prereqId => {
-                        this.drawConnection(svgContainer, prereqId, skill.id, branchData.color);
-                    });
-                }
-            });
+        // 绘制所有技能的依赖连接线
+        this.skillPositions.forEach((position, skillId) => {
+            if (position.dependencies && position.dependencies.length > 0) {
+                position.dependencies.forEach(depId => {
+                    this.drawConnection(svgContainer, depId, skillId);
+                });
+            }
         });
+        
+        // 为基础属性节点创建中心辐射线
+        this.createAttributeRadialLines();
     }
 
-    drawConnection(svgContainer, fromSkillId, toSkillId, color) {
+    drawConnection(svgContainer, fromSkillId, toSkillId) {
         const fromPos = this.skillPositions.get(fromSkillId);
         const toPos = this.skillPositions.get(toSkillId);
         
@@ -271,7 +497,20 @@ class SkillUI {
         line.setAttribute('y1', fromPos.y);
         line.setAttribute('x2', toPos.x);
         line.setAttribute('y2', toPos.y);
-        line.setAttribute('class', `skill-connection ${this.currentClass}`);
+        
+        // 根据节点类型设置连接线样式
+        let lineClass = 'skill-connection';
+        if (fromPos.nodeType === 'base_attribute') {
+            lineClass += ' base-attribute-connection';
+        } else if (fromPos.nodeType === 'keystone' || toPos.nodeType === 'keystone') {
+            lineClass += ' keystone-connection';
+        } else if (fromPos.nodeType === 'notable' || toPos.nodeType === 'notable') {
+            lineClass += ' notable-connection';
+        } else {
+            lineClass += ' small-connection';
+        }
+        
+        line.setAttribute('class', lineClass);
         
         // 检查连接状态
         const fromLearned = this.learnedSkills.has(fromSkillId);
@@ -292,8 +531,30 @@ class SkillUI {
             to: toSkillId
         });
     }
+    
+    // 创建基础属性的辐射线
+    createAttributeRadialLines() {
+        const radialContainer = document.getElementById('skill-radial-lines');
+        if (!radialContainer) return;
 
-    // 拖拽控制
+        // 清除现有辐射线
+        radialContainer.innerHTML = '';
+
+        // 为每个基础属性创建辐射线
+        this.baseAttributeNodes.forEach((position, attrId) => {
+            const radialLine = document.createElement('div');
+            radialLine.className = `radial-line attribute-${attrId}`;
+            radialLine.style.transform = `rotate(${position.angle}rad)`;
+            radialLine.style.background = `linear-gradient(to right, 
+                ${position.color}40 0%, 
+                ${position.color}20 50%, 
+                transparent 100%)`;
+            
+            radialContainer.appendChild(radialLine);
+        });
+    }
+
+    // 性能优化的拖拽处理
     startDrag(e) {
         if (e.target.classList.contains('skill-node')) return;
         
@@ -303,6 +564,23 @@ class SkillUI {
         
         const container = document.getElementById('skill-network-container');
         container.style.cursor = 'grabbing';
+        
+        // 禁用过渡效果以提高性能
+        if (this.viewport) {
+            this.viewport.style.transition = 'none';
+        }
+    }
+
+    throttledDrag(e) {
+        if (!this.isDragging) return;
+        
+        // 使用 requestAnimationFrame 节流
+        if (this.dragThrottle) return;
+        
+        this.dragThrottle = requestAnimationFrame(() => {
+            this.drag(e);
+            this.dragThrottle = null;
+        });
     }
 
     drag(e) {
@@ -319,18 +597,42 @@ class SkillUI {
         this.isDragging = false;
         const container = document.getElementById('skill-network-container');
         container.style.cursor = 'grab';
+        
+        // 恢复过渡效果
+        if (this.viewport) {
+            this.viewport.style.transition = 'transform 0.1s ease-out';
+        }
+        
+        // 清除节流
+        if (this.dragThrottle) {
+            cancelAnimationFrame(this.dragThrottle);
+            this.dragThrottle = null;
+        }
     }
 
-    // 滚轮缩放
-    handleWheel(e) {
+    // 性能优化的滚轮处理
+    throttledWheel(e) {
         e.preventDefault();
         
+        if (this.isTransforming) return;
+        
+        this.isTransforming = true;
+        requestAnimationFrame(() => {
+            this.handleWheel(e);
+            this.isTransforming = false;
+        });
+    }
+
+    handleWheel(e) {
         const delta = e.deltaY > 0 ? 0.9 : 1.1;
         const newScale = Math.max(this.minScale, Math.min(this.maxScale, this.currentTransform.scale * delta));
         
         if (newScale !== this.currentTransform.scale) {
-            // 计算缩放中心点
-            const rect = e.currentTarget.getBoundingClientRect();
+            // 计算缩放中心点 - 修复getBoundingClientRect错误
+            const container = document.getElementById('skill-network-container');
+            if (!container) return;
+            
+            const rect = container.getBoundingClientRect();
             const centerX = e.clientX - rect.left;
             const centerY = e.clientY - rect.top;
             
@@ -356,7 +658,7 @@ class SkillUI {
         e.preventDefault();
         if (e.touches.length === 1 && this.isDragging) {
             const touch = e.touches[0];
-            this.drag({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => {} });
+            this.throttledDrag({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => {} });
         }
     }
 
@@ -377,6 +679,43 @@ class SkillUI {
         }
     }
 
+    // 聚焦当前职业
+    focusCurrentClass() {
+        const classPos = this.classPositions.get(this.currentClass);
+        if (!classPos) return;
+        
+        const container = document.getElementById('skill-network-container');
+        if (!container) return;
+        
+        // 计算当前职业技能的平均位置
+        const classSkills = Array.from(this.allSkillPositions.entries())
+            .filter(([_, pos]) => pos.class === this.currentClass);
+        
+        if (classSkills.length === 0) return;
+        
+        // 找到职业技能的边界
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+        
+        classSkills.forEach(([_, pos]) => {
+            minX = Math.min(minX, pos.x);
+            maxX = Math.max(maxX, pos.x);
+            minY = Math.min(minY, pos.y);
+            maxY = Math.max(maxY, pos.y);
+        });
+        
+        // 计算职业区域的中心
+        const classCenterX = (minX + maxX) / 2;
+        const classCenterY = (minY + maxY) / 2;
+        
+        const rect = container.getBoundingClientRect();
+        this.currentTransform.x = rect.width / 2 - classCenterX;
+        this.currentTransform.y = rect.height / 2 - classCenterY;
+        this.currentTransform.scale = 1.5;
+        
+        this.updateTransform();
+    }
+
     // 缩放控制
     zoomIn() {
         const newScale = Math.min(this.maxScale, this.currentTransform.scale * 1.2);
@@ -391,7 +730,7 @@ class SkillUI {
     }
 
     resetView() {
-        this.currentTransform = { x: 0, y: 0, scale: 1 };
+        this.currentTransform = { x: -300, y: -300, scale: 0.8 };
         this.updateTransform();
     }
 
@@ -400,8 +739,9 @@ class SkillUI {
         if (!container) return;
         
         const rect = container.getBoundingClientRect();
-        this.currentTransform.x = rect.width / 2 - 400; // 400是布局中心X
-        this.currentTransform.y = rect.height / 2 - 300; // 300是布局中心Y
+        this.currentTransform.x = rect.width / 2 - 1000; // 1000是新的布局中心X
+        this.currentTransform.y = rect.height / 2 - 1000; // 1000是新的布局中心Y
+        this.currentTransform.scale = 0.7;
         this.updateTransform();
     }
 
@@ -507,22 +847,34 @@ class SkillUI {
             } else if (fromLearned && !toLearned) {
                 connection.element.classList.add('prerequisite');
             }
+
+            // 更新透明度
+            if (connection.class === this.currentClass) {
+                connection.element.style.opacity = '1';
+            } else {
+                connection.element.style.opacity = '0.3';
+            }
         });
     }
 
     getSkillById(skillId) {
-        if (!this.currentClass) return null;
+        // 先检查基础属性节点
+        const baseAttr = this.baseAttributeNodes.get(skillId);
+        if (baseAttr) return baseAttr.skill;
         
-        const classData = SkillTreeData[this.currentClass];
-        if (!classData) return null;
-
-        for (const branchData of Object.values(classData.branches)) {
-            for (const skills of Object.values(branchData.skills)) {
-                const skill = skills.find(s => s.id === skillId);
-                if (skill) return skill;
+        // 检查所有属性技能
+        if (window.SkillTreeData) {
+            for (const attributeData of Object.values(window.SkillTreeData)) {
+                if (attributeData && attributeData.skills) {
+                    const skill = attributeData.skills.find(s => s.id === skillId);
+                    if (skill) return skill;
+                }
             }
         }
-        return null;
+        
+        // 检查技能位置中的技能
+        const position = this.skillPositions.get(skillId);
+        return position ? position.skill : null;
     }
 
     // 更新UI显示
@@ -538,15 +890,30 @@ class SkillUI {
     updateForClass(characterClass) {
         this.currentClass = characterClass;
         
-        // 更新标签页状态
-        document.querySelectorAll('.class-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.class === characterClass);
-        });
+        // 更新当前职业显示
+        const currentClassElement = document.getElementById('current-class-name');
+        if (currentClassElement) {
+            const classData = window.SkillTreeData?.[characterClass];
+            currentClassElement.textContent = classData ? classData.name : characterClass;
+        }
         
-        this.generateSkillLayout();
-        this.renderSkillNetwork();
-        this.updateSkillPoints();
+        this.updateSkillStates();
+        this.updateConnections();
         this.updateAutoCastSettings();
+        this.updateRadialLines();
+    }
+
+    // 更新辐射线
+    updateRadialLines() {
+        const radialLines = document.querySelectorAll('.radial-line');
+        radialLines.forEach(line => {
+            const className = line.className.split(' ')[1]; // 获取职业名
+            if (className === this.currentClass) {
+                line.style.opacity = '0.8';
+            } else {
+                line.style.opacity = '0.3';
+            }
+        });
     }
 
     updateSkillPoints() {
@@ -624,7 +991,12 @@ class SkillUI {
         }
 
         if (learnedActiveSkills.length === 0 && learnedAuraSkills.length === 0) {
-            container.innerHTML = '<div style="text-align: center; color: #666;">暂无可自动施法的技能</div>';
+            container.innerHTML = `
+                <div style="text-align: center; color: #bdc3c7; padding: 20px;">
+                    <div style="font-size: 1.1em; margin-bottom: 10px;">🎯 暂无可自动施法的技能</div>
+                    <div style="font-size: 0.9em; opacity: 0.8;">学习主动技能或光环技能后，可在此处设置自动施法</div>
+                </div>
+            `;
         }
     }
 
@@ -770,6 +1142,33 @@ style.textContent = `
         transform: scale(1);
         box-shadow: 0 0 20px rgba(39, 174, 96, 0.4);
     }
+}
+
+.skill-class-label {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.3em;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 15;
+}
+
+.skill-node:hover .skill-class-label {
+    opacity: 0.8;
+}
+
+.current-class-display {
+    font-size: 1.2em;
+    color: #4CAF50;
+    margin-top: 10px;
 }
 `;
 document.head.appendChild(style);

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技能网状图测试 - 放置挂机战斗游戏</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/skills.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a2e;
+            font-family: Arial, sans-serif;
+        }
+        .test-header {
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            z-index: 200;
+        }
+        .test-info {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .test-controls {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .test-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .test-btn:hover {
+            background: #45a049;
+        }
+        .test-btn.secondary {
+            background: #2196F3;
+        }
+        .test-btn.secondary:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <h1>🎯 技能网状图测试页面</h1>
+        <p>测试可拖拽缩放的技能树网状图功能</p>
+    </div>
+
+    <div class="test-info">
+        <h3>📖 操作说明：</h3>
+        <ul>
+            <li><strong>鼠标拖拽</strong>：在空白区域按住鼠标左键拖动视图</li>
+            <li><strong>滚轮缩放</strong>：使用鼠标滚轮放大/缩小视图</li>
+            <li><strong>技能点击</strong>：点击可学习的技能（绿色边框）来学习技能</li>
+            <li><strong>技能悬停</strong>：鼠标悬停在技能上查看详细信息</li>
+            <li><strong>控制按钮</strong>：使用右上角和右下角的控制按钮</li>
+            <li><strong>职业切换</strong>：点击顶部的职业标签页切换不同职业</li>
+            <li><strong>触摸支持</strong>：移动设备支持触摸拖拽操作</li>
+        </ul>
+    </div>
+
+    <div class="test-controls">
+        <button class="test-btn" onclick="addSkillPoints()">+10 技能点</button>
+        <button class="test-btn" onclick="levelUpCharacter()">角色升级</button>
+        <button class="test-btn secondary" onclick="resetAllSkills()">重置所有技能</button>
+        <button class="test-btn secondary" onclick="learnRandomSkill()">随机学习技能</button>
+        <button class="test-btn secondary" onclick="showSkillInfo()">显示技能信息</button>
+    </div>
+
+    <!-- 技能页面 -->
+    <div class="skills-page">
+        <!-- 内容将由SkillUI动态生成 -->
+    </div>
+
+    <script>
+        // 测试功能函数
+        function addSkillPoints() {
+            if (window.game && window.game.character) {
+                window.game.character.skillPoints = (window.game.character.skillPoints || 0) + 10;
+                window.skillUI.updateSkillPoints();
+                window.skillUI.updateSkillStates();
+                console.log('添加了10个技能点');
+            }
+        }
+
+        function levelUpCharacter() {
+            if (window.game && window.game.character) {
+                window.game.character.gainExp(1000);
+                window.skillUI.updateSkillPoints();
+                window.skillUI.updateSkillStates();
+                console.log('角色升级了！');
+            }
+        }
+
+        function resetAllSkills() {
+            if (window.skillUI) {
+                window.skillUI.resetSkillPoints();
+                console.log('重置了所有技能');
+            }
+        }
+
+        function learnRandomSkill() {
+            if (!window.game || !window.skillUI) return;
+            
+            const availableSkills = document.querySelectorAll('.skill-node.available');
+            if (availableSkills.length > 0) {
+                const randomSkill = availableSkills[Math.floor(Math.random() * availableSkills.length)];
+                randomSkill.click();
+                console.log('随机学习了一个技能');
+            } else {
+                console.log('没有可学习的技能');
+            }
+        }
+
+        function showSkillInfo() {
+            if (!window.skillUI) return;
+            
+            const learnedCount = window.skillUI.learnedSkills.size;
+            const totalSkills = window.skillUI.skillPositions.size;
+            const skillPoints = window.game?.character?.skillPoints || 0;
+            
+            console.log(`=== 技能信息 ===`);
+            console.log(`已学技能: ${learnedCount}/${totalSkills}`);
+            console.log(`剩余技能点: ${skillPoints}`);
+            console.log(`当前职业: ${window.skillUI.currentClass}`);
+            console.log(`缩放级别: ${Math.round(window.skillUI.currentTransform.scale * 100)}%`);
+            console.log(`视图位置: (${Math.round(window.skillUI.currentTransform.x)}, ${Math.round(window.skillUI.currentTransform.y)})`);
+        }
+
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            if (!window.skillUI) return;
+            
+            switch(e.key) {
+                case 'r':
+                case 'R':
+                    window.skillUI.resetView();
+                    console.log('重置视图 (快捷键: R)');
+                    break;
+                case 'c':
+                case 'C':
+                    window.skillUI.centerView();
+                    console.log('居中视图 (快捷键: C)');
+                    break;
+                case '+':
+                case '=':
+                    window.skillUI.zoomIn();
+                    console.log('放大视图 (快捷键: +)');
+                    break;
+                case '-':
+                case '_':
+                    window.skillUI.zoomOut();
+                    console.log('缩小视图 (快捷键: -)');
+                    break;
+                case 'i':
+                case 'I':
+                    showSkillInfo();
+                    break;
+            }
+        });
+
+        // 显示快捷键提示
+        console.log('=== 键盘快捷键 ===');
+        console.log('R - 重置视图');
+        console.log('C - 居中视图');
+        console.log('+ - 放大视图');
+        console.log('- - 缩小视图');
+        console.log('I - 显示技能信息');
+    </script>
+
+    <!-- 引入游戏脚本 -->
+    <script src="js/utils/Utils.js"></script>
+    <script src="js/utils/Calculator.js"></script>
+    <script src="js/utils/Storage.js"></script>
+    <script src="js/data/texts.js"></script>
+    <script src="js/data/classes.js"></script>
+    <script src="js/data/skills.js"></script>
+    <script src="js/data/equipment.js"></script>
+    <script src="js/data/monsters.js"></script>
+    <script src="js/core/Character.js"></script>
+    <script src="js/core/Equipment.js"></script>
+    <script src="js/core/Skills.js"></script>
+    <script src="js/core/Combat.js"></script>
+    <script src="js/core/Game.js"></script>
+    <script src="js/ui/CharacterUI.js"></script>
+    <script src="js/ui/CombatUI.js"></script>
+    <script src="js/ui/EquipmentUI.js"></script>
+    <script src="js/ui/SkillUI.js"></script>
+    <script src="js/debug.js"></script>
+
+    <script>
+        // 初始化游戏
+        window.addEventListener('load', async () => {
+            try {
+                console.log('正在初始化技能网状图测试...');
+                
+                window.game = new Game();
+                await window.game.init();
+                
+                // 给角色一些技能点用于测试
+                window.game.character.skillPoints = 20;
+                window.game.character.level = 10;
+                
+                // 更新UI
+                window.skillUI.updateSkillPoints();
+                window.skillUI.updateSkillStates();
+                
+                // 居中显示
+                setTimeout(() => {
+                    window.skillUI.centerView();
+                }, 500);
+                
+                console.log('✅ 技能网状图测试初始化完成！');
+                console.log('💡 提示：使用上方的测试按钮或键盘快捷键来测试功能');
+                
+            } catch (error) {
+                console.error('❌ 技能网状图测试初始化失败:', error);
+            }
+        });
+    </script>
+</body>
+</html> 

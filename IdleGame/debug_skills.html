@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技能数据调试</title>
+</head>
+<body>
+    <h1>技能数据调试</h1>
+    <div id="debug-output"></div>
+
+    <script src="js/data/skills.js"></script>
+    
+    <script>
+        function debugOutput(message) {
+            const output = document.getElementById('debug-output');
+            output.innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+
+        debugOutput('开始调试技能数据...');
+        debugOutput('typeof SkillTreeData: ' + typeof SkillTreeData);
+        debugOutput('typeof window.SkillTreeData: ' + typeof window.SkillTreeData);
+        
+        if (typeof SkillTreeData !== 'undefined') {
+            debugOutput('SkillTreeData 存在');
+            debugOutput('SkillTreeData keys: ' + Object.keys(SkillTreeData).join(', '));
+            
+            Object.keys(SkillTreeData).forEach(key => {
+                const attr = SkillTreeData[key];
+                debugOutput(`${key}: name=${attr.name}, skills count=${attr.skills ? attr.skills.length : 'undefined'}`);
+                
+                if (attr.skills) {
+                    attr.skills.forEach((skill, index) => {
+                        debugOutput(`  ${index}: ${skill.id} - ${skill.name}`);
+                    });
+                }
+            });
+        } else {
+            debugOutput('SkillTreeData 不存在！');
+        }
+        
+        if (typeof window.SkillTreeData !== 'undefined') {
+            debugOutput('window.SkillTreeData 存在');
+        } else {
+            debugOutput('window.SkillTreeData 不存在！');
+        }
+    </script>
+</body>
+</html> 

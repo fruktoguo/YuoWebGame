@@ -1,95 +1,60 @@
-/* 技能页面样式 - 可拖拽缩放网状图 */
+/* 技能页面样式 - 全职业网状图版本 */
 .skills-page {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr 220px;
+    height: 100vh;
+    background: #1a1a1a;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
     overflow: hidden;
+    gap: 0;
 }
 
 .skills-header {
-    text-align: center;
-    margin-bottom: 30px;
-    color: white;
-    position: relative;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    padding: 20px;
+    border-bottom: 2px solid #3498db;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     z-index: 100;
+    position: relative;
 }
 
 .skills-header h2 {
-    font-size: 2.5em;
-    margin-bottom: 10px;
+    margin: 0 0 15px 0;
+    color: #ecf0f1;
+    text-align: center;
+    font-size: 2em;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
 .skill-points-display {
-    font-size: 1.5em;
-    color: #ffd700;
-    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.4em;
+    color: #f39c12;
+    margin-bottom: 10px;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
-/* 职业标签页 */
-.class-tabs {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-    gap: 10px;
-    flex-wrap: wrap;
-    position: relative;
-    z-index: 100;
-}
-
-.class-tab {
-    padding: 12px 24px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 25px;
-    color: #fff;
-    font-size: 1.1em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
-
-.class-tab:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-.class-tab.active {
-    background: linear-gradient(45deg, #4a90e2, #357abd);
-    border-color: #4a90e2;
-    box-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
+.current-class-display {
+    text-align: center;
+    font-size: 1.2em;
+    color: #4CAF50;
+    margin-top: 10px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
 /* 技能网状图容器 */
 .skill-network-container {
-    width: 100%;
-    height: 600px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 15px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
     position: relative;
     overflow: hidden;
+    background: radial-gradient(circle at center, #2c3e50 0%, #1a1a1a 100%);
     cursor: grab;
-    margin-bottom: 20px;
+    min-height: 0;
+    max-height: 100%;
 }
 
 .skill-network-container:active {
     cursor: grabbing;
-}
-
-/* 技能网状图视口 */
-.skill-network-viewport {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    transform-origin: 0 0;
-    transition: transform 0.1s ease-out;
 }
 
 /* 网格背景 */
@@ -99,120 +64,42 @@
     left: 0;
     width: 100%;
     height: 100%;
-    opacity: 0.1;
     background-image: 
         linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
-    background-size: 50px 50px;
+    background-size: 40px 40px;
     pointer-events: none;
+    z-index: 1;
 }
 
-/* 技能节点 */
-.skill-node {
+/* 中心指示器 */
+.skill-network-center {
     position: absolute;
-    width: 80px;
-    height: 80px;
+    left: 990px;
+    top: 990px;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, #fff, #3498db);
+    border: 3px solid #2980b9;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2em;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 4px solid;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.3) 100%);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    user-select: none;
-    z-index: 10;
+    box-shadow: 0 0 30px rgba(52, 152, 219, 0.8);
+    z-index: 5;
+    animation: center-pulse 3s infinite;
 }
 
-/* 技能节点状态 */
-.skill-node.locked {
-    border-color: #666;
-    color: #666;
-    background: radial-gradient(circle, rgba(100,100,100,0.1) 0%, rgba(0,0,0,0.5) 100%);
-    cursor: not-allowed;
-}
-
-.skill-node.available {
-    border-color: #4CAF50;
-    color: #4CAF50;
-    background: radial-gradient(circle, rgba(76,175,80,0.2) 0%, rgba(0,0,0,0.3) 100%);
-    box-shadow: 0 0 20px rgba(76,175,80,0.3);
-    animation: pulse-available 2s infinite;
-}
-
-.skill-node.learned {
-    border-color: #ffd700;
-    color: #ffd700;
-    background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, rgba(255,140,0,0.1) 100%);
-    box-shadow: 0 0 25px rgba(255,215,0,0.4);
-}
-
-.skill-node.maxed {
-    border-color: #ff6b6b;
-    color: #ff6b6b;
-    background: radial-gradient(circle, rgba(255,107,107,0.3) 0%, rgba(255,0,0,0.1) 100%);
-    box-shadow: 0 0 30px rgba(255,107,107,0.5);
-}
-
-.skill-node:hover:not(.locked) {
-    transform: scale(1.15);
-    z-index: 20;
-}
-
-/* 可用技能脉冲动画 */
-@keyframes pulse-available {
-    0%, 100% {
-        box-shadow: 0 0 20px rgba(76,175,80,0.3);
+@keyframes center-pulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 0 30px rgba(52, 152, 219, 0.8);
     }
-    50% {
-        box-shadow: 0 0 40px rgba(76,175,80,0.8);
+    50% { 
+        transform: scale(1.2);
+        box-shadow: 0 0 50px rgba(52, 152, 219, 1);
     }
 }
 
-/* 技能等级显示 */
-.skill-level {
-    position: absolute;
-    bottom: -8px;
-    right: -8px;
-    background: rgba(0,0,0,0.9);
-    color: white;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.6em;
-    font-weight: bold;
-    border: 2px solid #333;
-}
-
-/* 技能名称标签 */
-.skill-name-label {
-    position: absolute;
-    top: -35px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.8);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.4em;
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-    z-index: 15;
-}
-
-.skill-node:hover .skill-name-label {
-    opacity: 1;
-}
-
-/* SVG连接线容器 */
-.skill-connections {
+/* 辐射线指示器 */
+.skill-radial-lines {
     position: absolute;
     top: 0;
     left: 0;
@@ -220,120 +107,670 @@
     height: 100%;
     pointer-events: none;
     z-index: 1;
-    overflow: visible;
 }
 
-/* 技能连接线 */
+.radial-line {
+    position: absolute;
+    left: 1000px;
+    top: 1000px;
+    width: 600px;
+    height: 2px;
+    background: linear-gradient(to right, 
+        rgba(255,255,255,0.3) 0%, 
+        rgba(255,255,255,0.1) 50%, 
+        transparent 100%);
+    transform-origin: 0 50%;
+    opacity: 0.5;
+}
+
+.radial-line.warrior {
+    background: linear-gradient(to right, 
+        rgba(231, 76, 60, 0.4) 0%, 
+        rgba(231, 76, 60, 0.2) 50%, 
+        transparent 100%);
+}
+
+.radial-line.mage {
+    background: linear-gradient(to right, 
+        rgba(52, 152, 219, 0.4) 0%, 
+        rgba(52, 152, 219, 0.2) 50%, 
+        transparent 100%);
+}
+
+.radial-line.archer {
+    background: linear-gradient(to right, 
+        rgba(39, 174, 96, 0.4) 0%, 
+        rgba(39, 174, 96, 0.2) 50%, 
+        transparent 100%);
+}
+
+.radial-line.assassin {
+    background: linear-gradient(to right, 
+        rgba(155, 89, 182, 0.4) 0%, 
+        rgba(155, 89, 182, 0.2) 50%, 
+        transparent 100%);
+}
+
+.radial-line.paladin {
+    background: linear-gradient(to right, 
+        rgba(243, 156, 18, 0.4) 0%, 
+        rgba(243, 156, 18, 0.2) 50%, 
+        transparent 100%);
+}
+
+.radial-line.necromancer {
+    background: linear-gradient(to right, 
+        rgba(149, 165, 166, 0.4) 0%, 
+        rgba(149, 165, 166, 0.2) 50%, 
+        transparent 100%);
+}
+
+/* 技能网状图视口 */
+.skill-network-viewport {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3000px;
+    height: 3000px;
+    transform-origin: 0 0;
+    transition: transform 0.2s ease-out;
+    will-change: transform;
+    z-index: 2;
+}
+
+/* 技能连接线容器 */
+.skill-connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* 技能连接线样式 - 按职业着色 */
 .skill-connection {
-    stroke-width: 3;
-    stroke-opacity: 0.4;
+    stroke-width: 2;
+    opacity: 0.6;
     transition: all 0.3s ease;
-    fill: none;
 }
 
-.skill-connection.prerequisite {
-    stroke-opacity: 0.7;
-    stroke-dasharray: 8,4;
+.skill-connection.warrior {
+    stroke: #e74c3c;
+}
+
+.skill-connection.mage {
+    stroke: #3498db;
+}
+
+.skill-connection.archer {
+    stroke: #27ae60;
+}
+
+.skill-connection.assassin {
+    stroke: #9b59b6;
+}
+
+.skill-connection.paladin {
+    stroke: #f39c12;
+}
+
+.skill-connection.necromancer {
+    stroke: #95a5a6;
 }
 
 .skill-connection.active {
-    stroke-opacity: 1;
-    stroke-width: 4;
-    filter: drop-shadow(0 0 8px currentColor);
+    stroke-width: 3;
+    opacity: 1;
+    filter: drop-shadow(0 0 6px currentColor);
 }
 
-/* 连接线颜色 */
-.skill-connection.warrior { stroke: #ff6b6b; }
-.skill-connection.mage { stroke: #4ecdc4; }
-.skill-connection.tank { stroke: #45b7d1; }
-.skill-connection.priest { stroke: #f9ca24; }
-.skill-connection.assassin { stroke: #6c5ce7; }
-.skill-connection.archer { stroke: #a0e7e5; }
+.skill-connection.prerequisite {
+    stroke-dasharray: 4,4;
+    animation: prerequisite-pulse 2s infinite;
+}
+
+@keyframes prerequisite-pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
+/* 新的连接线样式 - 按节点类型 */
+.skill-connection.base-attribute-connection {
+    stroke-width: 3;
+    stroke: #fff;
+    opacity: 0.8;
+}
+
+.skill-connection.keystone-connection {
+    stroke-width: 3;
+    stroke: #f39c12;
+    opacity: 0.7;
+}
+
+.skill-connection.notable-connection {
+    stroke-width: 2.5;
+    stroke: #3498db;
+    opacity: 0.6;
+}
+
+.skill-connection.small-connection {
+    stroke-width: 2;
+    stroke: #95a5a6;
+    opacity: 0.5;
+}
+
+/* 技能节点样式 */
+.skill-node {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid #34495e;
+    background: radial-gradient(circle, #2c3e50, #1a1a1a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    user-select: none;
+    will-change: transform, box-shadow;
+}
+
+/* 小节点 - POE风格 */
+.skill-node.small-node {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8em;
+    border-width: 2px;
+}
+
+/* 显著节点 - POE风格 */
+.skill-node.notable-node {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2em;
+    border-width: 3px;
+    border-style: double;
+}
+
+/* 基石节点 - POE风格 */
+.skill-node.keystone-node {
+    width: 64px;
+    height: 64px;
+    font-size: 1.5em;
+    border-width: 4px;
+    border-style: solid;
+    border-radius: 20%;
+    box-shadow: 0 0 20px rgba(255,215,0,0.5);
+}
+
+/* 核心节点 - 中心特殊节点 */
+.skill-node.core-node {
+    width: 80px;
+    height: 80px;
+    font-size: 2em;
+    border-width: 5px;
+    border-style: double;
+    border-radius: 50%;
+    background: radial-gradient(circle, #f39c12, #e67e22);
+    box-shadow: 0 0 30px rgba(243, 156, 18, 0.8);
+    animation: core-pulse 4s infinite;
+}
+
+@keyframes core-pulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 0 30px rgba(243, 156, 18, 0.8);
+    }
+    50% { 
+        transform: scale(1.1);
+        box-shadow: 0 0 50px rgba(243, 156, 18, 1);
+    }
+}
+
+/* 共享节点样式 */
+.skill-node.shared-node {
+    border-color: #ecf0f1;
+    background: radial-gradient(circle, #95a5a6, #7f8c8d);
+}
+
+/* 基础属性节点样式 */
+.skill-node.base-attribute-node {
+    width: 96px;
+    height: 96px;
+    border: 4px solid;
+    font-size: 2.5em;
+    animation: attribute-pulse 3s infinite;
+    position: relative;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    box-shadow: 0 0 30px rgba(255,255,255,0.3);
+}
+
+.skill-node.base-attribute-node::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    border: 2px solid;
+    border-radius: 50%;
+    opacity: 0.5;
+    animation: attribute-ring 4s infinite;
+}
+
+@keyframes attribute-pulse {
+    0%, 100% { 
+        transform: scale(1);
+    }
+    50% { 
+        transform: scale(1.05);
+    }
+}
+
+@keyframes attribute-ring {
+    0%, 100% { 
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    50% { 
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+/* 基础属性节点的特定颜色 */
+.skill-node.base-attribute-node[data-skill-id="base_strength"] {
+    border-color: #e74c3c;
+    background: radial-gradient(circle, rgba(231, 76, 60, 0.2), rgba(231, 76, 60, 0.1));
+}
+
+.skill-node.base-attribute-node[data-skill-id="base_strength"]::before {
+    border-color: #e74c3c;
+}
+
+.skill-node.base-attribute-node[data-skill-id="base_dexterity"] {
+    border-color: #27ae60;
+    background: radial-gradient(circle, rgba(39, 174, 96, 0.2), rgba(39, 174, 96, 0.1));
+}
+
+.skill-node.base-attribute-node[data-skill-id="base_dexterity"]::before {
+    border-color: #27ae60;
+}
+
+.skill-node.base-attribute-node[data-skill-id="base_intelligence"] {
+    border-color: #3498db;
+    background: radial-gradient(circle, rgba(52, 152, 219, 0.2), rgba(52, 152, 219, 0.1));
+}
+
+.skill-node.base-attribute-node[data-skill-id="base_intelligence"]::before {
+    border-color: #3498db;
+}
+
+.skill-node.base-attribute-node[data-skill-id="base_constitution"] {
+    border-color: #f39c12;
+    background: radial-gradient(circle, rgba(243, 156, 18, 0.2), rgba(243, 156, 18, 0.1));
+}
+
+.skill-node.base-attribute-node[data-skill-id="base_constitution"]::before {
+    border-color: #f39c12;
+}
+
+.skill-node.base-attribute-node[data-skill-id="base_spirit"] {
+    border-color: #9b59b6;
+    background: radial-gradient(circle, rgba(155, 89, 182, 0.2), rgba(155, 89, 182, 0.1));
+}
+
+.skill-node.base-attribute-node[data-skill-id="base_spirit"]::before {
+    border-color: #9b59b6;
+}
+
+/* 职业特色边框颜色 */
+.skill-node.class-warrior {
+    border-color: #e74c3c;
+}
+
+.skill-node.class-mage {
+    border-color: #3498db;
+}
+
+.skill-node.class-archer {
+    border-color: #27ae60;
+}
+
+.skill-node.class-assassin {
+    border-color: #9b59b6;
+}
+
+.skill-node.class-paladin {
+    border-color: #f39c12;
+}
+
+.skill-node.class-necromancer {
+    border-color: #95a5a6;
+}
+
+/* 技能状态样式 */
+.skill-node.locked {
+    background: radial-gradient(circle, #34495e, #2c3e50);
+    border-color: #7f8c8d;
+    color: #95a5a6;
+    transform: scale(0.9);
+    opacity: 0.6;
+}
+
+.skill-node.available {
+    background: radial-gradient(circle, #27ae60, #2ecc71);
+    border-color: #2ecc71;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+    animation: available-glow 2s infinite alternate;
+}
+
+@keyframes available-glow {
+    from { box-shadow: 0 0 15px rgba(46, 204, 113, 0.5); }
+    to { box-shadow: 0 0 25px rgba(46, 204, 113, 0.8); }
+}
+
+.skill-node.learned {
+    background: radial-gradient(circle, #3498db, #2980b9);
+    border-color: #3498db;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(52, 152, 219, 0.6);
+    transform: scale(1.05);
+}
+
+.skill-node.maxed {
+    background: radial-gradient(circle, #f39c12, #e67e22);
+    border-color: #f39c12;
+    color: #fff;
+    box-shadow: 0 0 25px rgba(243, 156, 18, 0.8);
+    transform: scale(1.1);
+}
+
+/* 悬停效果 */
+.skill-node:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 25px rgba(255,255,255,0.3);
+    z-index: 15;
+}
+
+.skill-node.locked:hover {
+    transform: scale(0.95);
+}
+
+.skill-node.keystone-node:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 35px rgba(255,215,0,0.7);
+}
+
+.skill-node.core-node:hover {
+    transform: scale(1.25);
+    box-shadow: 0 0 45px rgba(243, 156, 18, 1);
+}
+
+/* 技能等级显示 */
+.skill-level {
+    position: absolute;
+    bottom: -6px;
+    right: -6px;
+    width: 18px;
+    height: 18px;
+    background: #e74c3c;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.3em;
+    font-weight: bold;
+    border: 1px solid #fff;
+    z-index: 12;
+}
+
+.skill-node.small-node .skill-level {
+    width: 14px;
+    height: 14px;
+    bottom: -4px;
+    right: -4px;
+    font-size: 0.25em;
+}
+
+.skill-node.keystone-node .skill-level,
+.skill-node.core-node .skill-level {
+    width: 24px;
+    height: 24px;
+    bottom: -8px;
+    right: -8px;
+    font-size: 0.35em;
+}
+
+/* 技能名称标签 */
+.skill-name-label {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.95);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1000;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.skill-node.notable-node .skill-name-label {
+    font-size: 13px;
+    bottom: -35px;
+    font-weight: 500;
+}
+
+.skill-node.keystone-node .skill-name-label,
+.skill-node.core-node .skill-name-label {
+    font-size: 14px;
+    bottom: -40px;
+    font-weight: bold;
+    background: rgba(0,0,0,0.98);
+    border: 1px solid #f39c12;
+}
+
+.skill-node:hover .skill-name-label {
+    opacity: 1;
+}
+
+/* 职业标签 */
+.skill-class-label {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.9);
+    color: #bdc3c7;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1000;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.skill-node.notable-node .skill-class-label,
+.skill-node.keystone-node .skill-class-label,
+.skill-node.core-node .skill-class-label {
+    font-size: 11px;
+    top: -30px;
+}
+
+.skill-node:hover .skill-class-label {
+    opacity: 0.8;
+}
 
 /* 控制面板 */
 .skill-controls {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 20px;
+    left: 20px;
     display: flex;
     gap: 10px;
-    z-index: 100;
+    z-index: 50;
 }
 
 .control-button {
-    background: rgba(0,0,0,0.7);
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
+    background: rgba(52, 73, 94, 0.9);
+    color: #ecf0f1;
+    border: 2px solid #34495e;
+    border-radius: 8px;
+    padding: 8px 16px;
     cursor: pointer;
     font-size: 0.9em;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
 }
 
 .control-button:hover {
-    background: rgba(0,0,0,0.9);
+    background: rgba(52, 152, 219, 0.9);
+    border-color: #3498db;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
 /* 缩放控制 */
 .zoom-controls {
     position: absolute;
-    bottom: 10px;
-    right: 10px;
+    top: 20px;
+    right: 20px;
     display: flex;
     flex-direction: column;
     gap: 5px;
-    z-index: 100;
+    z-index: 50;
 }
 
 .zoom-button {
     width: 40px;
     height: 40px;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    border: none;
-    border-radius: 5px;
+    background: rgba(52, 73, 94, 0.9);
+    color: #ecf0f1;
+    border: 2px solid #34495e;
+    border-radius: 50%;
     cursor: pointer;
     font-size: 1.2em;
+    font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
 }
 
 .zoom-button:hover {
-    background: rgba(0,0,0,0.9);
+    background: rgba(52, 152, 219, 0.9);
+    border-color: #3498db;
+    transform: scale(1.1);
 }
 
 /* 缩放级别显示 */
 .zoom-level {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    padding: 5px 10px;
-    border-radius: 5px;
+    bottom: 240px;
+    right: 20px;
+    background: rgba(0,0,0,0.8);
+    color: #ecf0f1;
+    padding: 8px 12px;
+    border-radius: 20px;
     font-size: 0.9em;
-    z-index: 100;
+    z-index: 50;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* 自动施法设置 */
+.autocast-settings {
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+    border-top: 2px solid #3498db;
+    padding: 20px;
+    height: 220px;
+    overflow-y: auto;
+    z-index: 200;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+    position: relative;
+    display: block;
+}
+
+.autocast-settings h3 {
+    margin: 0 0 15px 0;
+    color: #ecf0f1;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.autocast-skill-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    padding: 10px 0;
+}
+
+.autocast-skill-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(52, 73, 94, 0.6);
+    border-radius: 8px;
+    border: 1px solid #34495e;
+    transition: all 0.3s ease;
+    min-height: 40px;
+}
+
+.autocast-skill-item:hover {
+    background: rgba(52, 73, 94, 0.8);
+    border-color: #3498db;
+}
+
+.autocast-skill-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #3498db;
+}
+
+.autocast-skill-item label {
+    color: #ecf0f1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1em;
+    font-weight: 500;
+    flex: 1;
 }
 
 /* 技能工具提示 */
 .skill-tooltip {
-    position: absolute;
-    background: rgba(0, 0, 0, 0.95);
-    color: white;
-    padding: 15px;
-    border-radius: 10px;
-    font-size: 0.9em;
+    position: fixed;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    color: #ecf0f1;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 2px solid #3498db;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    z-index: 2000;
     max-width: 300px;
-    z-index: 1000;
-    border: 2px solid #ffd700;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.8);
-    pointer-events: none;
     opacity: 0;
     transform: translateY(10px);
     transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
 }
 
 .skill-tooltip.show {
@@ -342,119 +779,94 @@
 }
 
 .skill-tooltip h4 {
-    margin: 0 0 10px 0;
-    color: #ffd700;
-    font-size: 1.1em;
+    margin: 0 0 8px 0;
+    color: #3498db;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.skill-tooltip .skill-type {
+.skill-type {
     display: inline-block;
     padding: 2px 8px;
     border-radius: 12px;
     font-size: 0.8em;
-    margin-bottom: 8px;
     font-weight: bold;
+    margin-bottom: 8px;
 }
 
 .skill-type.passive {
-    background: #4CAF50;
+    background: #27ae60;
     color: white;
 }
 
 .skill-type.active {
-    background: #2196F3;
+    background: #e74c3c;
     color: white;
 }
 
 .skill-type.aura {
-    background: #FF9800;
+    background: #f39c12;
     color: white;
 }
 
-.skill-tooltip .skill-cost {
-    color: #ff6b6b;
+.skill-cost {
+    color: #f39c12;
     font-weight: bold;
     margin-bottom: 8px;
 }
 
-.skill-tooltip .skill-description {
-    margin-bottom: 10px;
+.skill-description {
+    color: #bdc3c7;
     line-height: 1.4;
+    margin-bottom: 8px;
 }
 
-.skill-tooltip .skill-effects {
-    font-size: 0.85em;
-    color: #aaa;
+.skill-effects {
+    color: #2ecc71;
+    font-size: 0.9em;
     line-height: 1.3;
+    margin-bottom: 8px;
 }
 
-.skill-tooltip .prerequisites {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #444;
-    color: #ccc;
-    font-size: 0.8em;
+.prerequisites {
+    color: #e67e22;
+    font-size: 0.9em;
+    font-style: italic;
 }
 
-/* 自动施法设置 */
-.autocast-settings {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 20px;
-    margin-top: 20px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.autocast-settings h3 {
-    color: #ffd700;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-.autocast-skill-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-}
-
-.autocast-skill-item {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.autocast-skill-item input[type="checkbox"] {
-    margin-right: 10px;
-    transform: scale(1.2);
-}
-
-.autocast-skill-item label {
-    color: white;
-    cursor: pointer;
-    flex: 1;
+/* 技能学习动画 */
+@keyframes skill-unlock {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(52, 152, 219, 0.4);
+    }
+    50% {
+        transform: scale(1.4);
+        box-shadow: 0 0 50px rgba(52, 152, 219, 0.8);
+    }
+    100% {
+        transform: scale(1.1);
+        box-shadow: 0 0 25px rgba(52, 152, 219, 0.6);
+    }
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-    .skills-page {
-        padding: 10px;
+    .skills-header {
+        padding: 15px;
     }
     
-    .class-tabs {
-        gap: 5px;
+    .skills-header h2 {
+        font-size: 1.5em;
     }
     
-    .class-tab {
-        padding: 8px 16px;
-        font-size: 0.9em;
+    .skill-points-display {
+        font-size: 1.2em;
     }
     
-    .skill-network-container {
-        height: 400px;
+    .current-class-display {
+        font-size: 1em;
     }
     
     .skill-node {
@@ -463,33 +875,125 @@
         font-size: 1.5em;
     }
     
-    .skill-tooltip {
-        max-width: 250px;
+    .skill-level {
+        width: 20px;
+        height: 20px;
+        font-size: 0.35em;
+    }
+    
+    .skill-name-label {
+        font-size: 0.3em;
+        bottom: -30px;
+    }
+    
+    .skill-class-label {
+        font-size: 0.25em;
+        top: -20px;
+    }
+    
+    .control-button {
+        padding: 6px 12px;
         font-size: 0.8em;
-        padding: 10px;
+    }
+    
+    .zoom-button {
+        width: 35px;
+        height: 35px;
+        font-size: 1em;
+    }
+    
+    .autocast-settings {
+        padding: 10px 15px;
+        max-height: 150px;
     }
     
     .autocast-skill-list {
         grid-template-columns: 1fr;
     }
+    
+    .skill-tooltip {
+        max-width: 250px;
+        padding: 10px 12px;
+    }
 }
 
-@media (max-width: 480px) {
-    .skills-header h2 {
-        font-size: 2em;
+/* 性能优化 */
+.skill-network-viewport * {
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* 滚动条样式 */
+.autocast-settings::-webkit-scrollbar {
+    width: 8px;
+}
+
+.autocast-settings::-webkit-scrollbar-track {
+    background: #34495e;
+    border-radius: 4px;
+}
+
+.autocast-settings::-webkit-scrollbar-thumb {
+    background: #3498db;
+    border-radius: 4px;
+}
+
+.autocast-settings::-webkit-scrollbar-thumb:hover {
+    background: #2980b9;
+}
+
+/* 加载动画 */
+@keyframes network-fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
     }
-    
-    .skill-points-display {
-        font-size: 1.2em;
+    to {
+        opacity: 1;
+        transform: scale(1);
     }
-    
-    .skill-network-container {
-        height: 350px;
-    }
-    
-    .skill-node {
-        width: 50px;
-        height: 50px;
-        font-size: 1.2em;
-    }
+}
+
+.skill-network-viewport {
+    animation: network-fade-in 0.5s ease-out;
+}
+
+/* 职业区域指示器（可选） */
+.class-region-indicator {
+    position: absolute;
+    border: 2px dashed rgba(255,255,255,0.2);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.class-region-indicator.warrior {
+    border-color: rgba(231, 76, 60, 0.3);
+}
+
+.class-region-indicator.mage {
+    border-color: rgba(52, 152, 219, 0.3);
+}
+
+.class-region-indicator.archer {
+    border-color: rgba(39, 174, 96, 0.3);
+}
+
+.class-region-indicator.assassin {
+    border-color: rgba(155, 89, 182, 0.3);
+}
+
+.class-region-indicator.paladin {
+    border-color: rgba(243, 156, 18, 0.3);
+}
+
+.class-region-indicator.necromancer {
+    border-color: rgba(149, 165, 166, 0.3);
+}
+
+/* POE风格网格背景 */
+.skill-network-grid {
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
 } 

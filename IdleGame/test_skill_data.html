@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技能数据测试</title>
+</head>
+<body>
+    <h1>技能数据加载测试</h1>
+    <div id="test-results"></div>
+
+    <script src="js/data/skills.js"></script>
+    <script>
+        function runTests() {
+            const results = document.getElementById('test-results');
+            
+            // 测试1: 检查 window.SkillTreeData 是否存在
+            if (window.SkillTreeData) {
+                results.innerHTML += '<p style="color: green;">✓ window.SkillTreeData 已正确加载</p>';
+                
+                // 测试2: 检查数据结构
+                const attributes = Object.keys(window.SkillTreeData);
+                results.innerHTML += `<p style="color: green;">✓ 找到 ${attributes.length} 个属性: ${attributes.join(', ')}</p>`;
+                
+                // 测试3: 检查每个属性的技能数量
+                attributes.forEach(attr => {
+                    const skillCount = window.SkillTreeData[attr].skills.length;
+                    results.innerHTML += `<p style="color: blue;">  - ${attr}: ${skillCount} 个技能</p>`;
+                });
+                
+                // 测试4: 测试辅助函数
+                const testSkillId = 'strength_1';
+                const skillData = getSkillData(testSkillId);
+                if (skillData) {
+                    results.innerHTML += `<p style="color: green;">✓ getSkillData('${testSkillId}') 工作正常: ${skillData.name}</p>`;
+                } else {
+                    results.innerHTML += `<p style="color: red;">✗ getSkillData('${testSkillId}') 返回 null</p>`;
+                }
+                
+                // 测试5: 测试 getAllSkills
+                const allSkills = getAllSkills();
+                results.innerHTML += `<p style="color: green;">✓ getAllSkills() 返回 ${allSkills.length} 个技能</p>`;
+                
+            } else {
+                results.innerHTML += '<p style="color: red;">✗ window.SkillTreeData 未定义</p>';
+            }
+        }
+        
+        // 页面加载完成后运行测试
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html> 

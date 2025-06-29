@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新技能树系统测试</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/skills.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="skills-page">
+            <!-- 技能页面内容将由SkillUI动态生成 -->
+        </div>
+    </div>
+
+    <!-- 引入所有必要的脚本 -->
+    <script src="js/data/skills.js"></script>
+    <script src="js/core/Skills.js"></script>
+    <script src="js/ui/SkillUI.js"></script>
+    
+    <script>
+        // 创建模拟的角色和技能系统
+        const mockCharacter = {
+            name: "测试角色",
+            class: "warrior",
+            level: 10,
+            skillPoints: 15,
+            attributes: {
+                strength: 10,
+                dexterity: 8,
+                intelligence: 6,
+                constitution: 12,
+                spirit: 5
+            }
+        };
+
+        // 创建全局对象以供SkillUI使用
+        window.character = mockCharacter;
+        
+        // 创建技能系统
+        const skillsSystem = new Skills();
+        
+        // 创建技能UI
+        const skillUI = new SkillUI(skillsSystem);
+        
+        // 设置全局引用
+        window.skillUI = skillUI;
+        
+        // 模拟技能点变化事件
+        function updateSkillPoints() {
+            document.getElementById('available-skill-points').textContent = mockCharacter.skillPoints;
+        }
+        
+        // 初始更新
+        setTimeout(() => {
+            updateSkillPoints();
+            skillUI.update();
+        }, 100);
+        
+        console.log('新技能树系统测试页面已加载');
+        console.log('SkillTreeData:', window.SkillTreeData);
+        console.log('SkillTreeData keys:', Object.keys(window.SkillTreeData || {}));
+        console.log('基础属性节点数量:', skillUI.baseAttributeNodes.size);
+        console.log('技能节点总数:', skillUI.skillPositions.size);
+        console.log('依赖图大小:', skillUI.dependencyGraph.size);
+    </script>
+</body>
+</html> 

@@ -51,35 +51,34 @@ class Skills {
     // 升级技能（新技能树系统中暂不支持升级）
     upgradeSkill(skillId) {
         Utils.showNotification('当前技能树系统不支持技能升级', 'info');
-        return false;
+            return false;
     }
 
     // 检查是否可以学习技能
     canLearnSkill(skill, character) {
         if (!character) return false;
-        
+
         // 检查技能点
         if (character.skillPoints < skill.cost) return false;
-        
+
         // 检查前置技能
         if (skill.prerequisites && skill.prerequisites.length > 0) {
             const learnedSkills = character.learnedSkills || {};
             return skill.prerequisites.every(prereqId => learnedSkills[prereqId] > 0);
         }
-        
+
         return true;
     }
 
     // 获取技能数据
     getSkillData(skillId) {
-        for (const className in SkillTreeData) {
-            const classData = SkillTreeData[className];
-            for (const branchName in classData.branches) {
-                const branchData = classData.branches[branchName];
-                for (const tierKey in branchData.skills) {
-                    const skill = branchData.skills[tierKey].find(s => s.id === skillId);
-                    if (skill) return skill;
-                }
+        if (!window.SkillTreeData) return null;
+        
+        // 检查所有属性技能
+        for (const attributeData of Object.values(window.SkillTreeData)) {
+            if (attributeData && attributeData.skills) {
+                const skill = attributeData.skills.find(s => s.id === skillId);
+                if (skill) return skill;
             }
         }
         return null;
@@ -207,7 +206,7 @@ class Skills {
     calculateSkillDamage(skillId, level, effect) {
         const skillData = this.getSkillData(skillId);
         if (!skillData) return 0;
-
+        
         let baseDamage = 0;
         
         // 根据技能类型确定基础伤害
@@ -288,7 +287,7 @@ class Skills {
 
     // 获取技能树数据
     getSkillTreeData() {
-        return SkillTreeData;
+        return window.SkillTreeData;
     }
 
     // 获取已学习的技能
@@ -355,7 +354,7 @@ class Skills {
         this.learnedSkills = {};
         this.activeSkills = [];
         this.cooldowns = {};
-        
+
         // 返还技能点
         this.skillPoints += usedPoints;
         if (this.game.character) {

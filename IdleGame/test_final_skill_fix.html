@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技能系统最终测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>技能系统最终测试</h1>
+    <div id="test-results"></div>
+
+    <!-- 按照正确顺序加载脚本 -->
+    <script src="js/utils/Utils.js"></script>
+    <script src="js/utils/Calculator.js"></script>
+    <script src="js/utils/Storage.js"></script>
+    <script src="js/data/texts.js"></script>
+    <script src="js/data/classes.js"></script>
+    <script src="js/data/skills.js"></script>
+    <script src="js/data/equipment.js"></script>
+    <script src="js/data/monsters.js"></script>
+    <script src="js/core/Character.js"></script>
+    <script src="js/core/Equipment.js"></script>
+    <script src="js/core/Skills.js"></script>
+    <script src="js/core/Combat.js"></script>
+    <script src="js/core/Game.js"></script>
+    <script src="js/ui/CharacterUI.js"></script>
+    <script src="js/ui/CombatUI.js"></script>
+    <script src="js/ui/EquipmentUI.js"></script>
+    <script src="js/ui/SkillUI.js"></script>
+    <script src="js/debug.js"></script>
+
+    <script>
+        function addTestResult(message, type = 'info') {
+            const results = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        function runCompleteTest() {
+            try {
+                addTestResult('<h3>第1步: 检查数据加载</h3>');
+                
+                // 测试 SkillTreeData 加载
+                if (window.SkillTreeData) {
+                    addTestResult('✓ window.SkillTreeData 已正确加载', 'success');
+                    
+                    const attributes = Object.keys(window.SkillTreeData);
+                    addTestResult(`✓ 找到 ${attributes.length} 个属性: ${attributes.join(', ')}`, 'success');
+                    
+                    let totalSkills = 0;
+                    attributes.forEach(attr => {
+                        const skillCount = window.SkillTreeData[attr].skills.length;
+                        totalSkills += skillCount;
+                        addTestResult(`  - ${attr}: ${skillCount} 个技能`, 'info');
+                    });
+                    addTestResult(`✓ 总计 ${totalSkills} 个技能`, 'success');
+                } else {
+                    addTestResult('✗ window.SkillTreeData 未定义', 'error');
+                    return;
+                }
+
+                addTestResult('<h3>第2步: 测试辅助函数</h3>');
+                
+                // 测试 getSkillData
+                const testSkillId = 'strength_1';
+                const skillData = getSkillData(testSkillId);
+                if (skillData) {
+                    addTestResult(`✓ getSkillData('${testSkillId}') 工作正常: ${skillData.name}`, 'success');
+                } else {
+                    addTestResult(`✗ getSkillData('${testSkillId}') 返回 null`, 'error');
+                }
+
+                // 测试 getAllSkills
+                const allSkills = getAllSkills();
+                addTestResult(`✓ getAllSkills() 返回 ${allSkills.length} 个技能`, 'success');
+
+                addTestResult('<h3>第3步: 测试核心类初始化</h3>');
+                
+                // 创建模拟游戏对象
+                const mockGame = {
+                    character: {
+                        level: 1,
+                        skillPoints: 5,
+                        learnedSkills: {},
+                        autoCastSkills: []
+                    }
+                };
+
+                // 测试 Skills 类
+                const skillsSystem = new Skills(mockGame);
+                if (skillsSystem) {
+                    addTestResult('✓ Skills 类实例化成功', 'success');
+                    
+                    // 测试 getSkillTreeData 方法
+                    const treeData = skillsSystem.getSkillTreeData();
+                    if (treeData && treeData === window.SkillTreeData) {
+                        addTestResult('✓ Skills.getSkillTreeData() 工作正常', 'success');
+                    } else {
+                        addTestResult('✗ Skills.getSkillTreeData() 返回错误数据', 'error');
+                    }
+
+                    // 测试 getSkillData 方法
+                    const skillFromSystem = skillsSystem.getSkillData('strength_1');
+                    if (skillFromSystem) {
+                        addTestResult(`✓ Skills.getSkillData('strength_1') 工作正常: ${skillFromSystem.name}`, 'success');
+                    } else {
+                        addTestResult('✗ Skills.getSkillData() 返回 null', 'error');
+                    }
+                } else {
+                    addTestResult('✗ Skills 类实例化失败', 'error');
+                }
+
+                addTestResult('<h3>第4步: 测试 SkillUI 初始化</h3>');
+                
+                // 创建必要的DOM元素
+                const skillContainer = document.createElement('div');
+                skillContainer.id = 'skills-page';
+                document.body.appendChild(skillContainer);
+
+                try {
+                    // 测试 SkillUI 类
+                    const skillUI = new SkillUI(skillsSystem);
+                    if (skillUI) {
+                        addTestResult('✓ SkillUI 类实例化成功', 'success');
+                        
+                        // 测试依赖图构建
+                        skillUI.buildSkillDependencyGraph();
+                        if (skillUI.dependencyGraph && skillUI.dependencyGraph.size > 0) {
+                            addTestResult(`✓ 依赖图构建成功，包含 ${skillUI.dependencyGraph.size} 个节点`, 'success');
+                        } else {
+                            addTestResult('✗ 依赖图构建失败或为空', 'error');
+                        }
+                    } else {
+                        addTestResult('✗ SkillUI 类实例化失败', 'error');
+                    }
+                } catch (error) {
+                    addTestResult(`✗ SkillUI 测试出错: ${error.message}`, 'error');
+                    console.error('SkillUI 错误详情:', error);
+                }
+
+                addTestResult('<h3>测试完成</h3>');
+                addTestResult('所有主要组件测试完成。如果所有测试都通过，说明 SkillTreeData 引用问题已完全修复。', 'success');
+
+            } catch (error) {
+                addTestResult(`测试过程中发生错误: ${error.message}`, 'error');
+                console.error('测试错误详情:', error);
+            }
+        }
+
+        // 页面加载完成后运行测试
+        window.addEventListener('load', () => {
+            setTimeout(runCompleteTest, 100); // 稍微延迟确保所有脚本都加载完成
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POE风格技能树测试</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/skills.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a1a;
+            color: #ecf0f1;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        
+        .test-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        .test-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 100;
+            max-width: 300px;
+        }
+        
+        .test-info h3 {
+            margin: 0 0 10px 0;
+            color: #3498db;
+        }
+        
+        .test-info p {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+        
+        .skills-page {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-info">
+            <h3>POE风格技能树测试</h3>
+            <p>• 滚轮缩放</p>
+            <p>• 拖拽移动视图</p>
+            <p>• 点击技能节点</p>
+            <p>• 不同节点类型：小节点、显著节点、基石节点</p>
+            <p>• 中心共享技能区域</p>
+            <p>• 每个职业的路径网络</p>
+        </div>
+        
+        <div class="skills-page">
+            <!-- 技能树将在这里渲染 -->
+        </div>
+    </div>
+
+    <script src="js/data/skills.js"></script>
+    <script src="js/core/Skills.js"></script>
+    <script src="js/ui/SkillUI.js"></script>
+    
+    <script>
+        // 模拟游戏对象
+        window.game = {
+            character: {
+                class: 'warrior',
+                level: 10,
+                skillPoints: 10,
+                skills: new Map()
+            }
+        };
+        
+        // 初始化技能系统
+        const skillsSystem = new Skills();
+        const skillUI = new SkillUI(skillsSystem);
+        
+        // 模拟技能点变化事件
+        function addSkillPoints() {
+            window.game.character.skillPoints += 5;
+            window.dispatchEvent(new CustomEvent('skillPointsChanged'));
+        }
+        
+        function changeClass(className) {
+            window.game.character.class = className;
+            skillUI.updateForClass(className);
+        }
+        
+        // 添加测试技能
+        function addTestSkills() {
+            // 模拟学习一些技能
+            const testSkills = [
+                { id: 'test_active_1', name: '火球术', icon: '🔥', type: 'active', cost: 2 },
+                { id: 'test_active_2', name: '治疗术', icon: '💚', type: 'active', cost: 2 },
+                { id: 'test_aura_1', name: '力量光环', icon: '💪', type: 'aura', cost: 3 }
+            ];
+            
+            testSkills.forEach(skill => {
+                skillUI.learnedSkills.add(skill.id);
+                skillUI.skillsSystem.learnSkill(skill.id);
+            });
+            
+            skillUI.updateAutoCastSettings();
+            console.log('已添加测试技能');
+        }
+        
+        // 添加测试按钮
+        const testControls = document.createElement('div');
+        testControls.style.cssText = `
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 100;
+        `;
+        testControls.innerHTML = `
+            <button onclick="addSkillPoints()" style="margin: 5px; padding: 8px 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                +5 技能点
+            </button>
+            <button onclick="addTestSkills()" style="margin: 5px; padding: 8px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                添加测试技能
+            </button>
+            <select onchange="changeClass(this.value)" style="margin: 5px; padding: 8px; background: #2c3e50; color: white; border: 1px solid #34495e; border-radius: 4px;">
+                <option value="warrior">战士</option>
+                <option value="mage">法师</option>
+                <option value="archer">弓箭手</option>
+                <option value="assassin">刺客</option>
+                <option value="paladin">圣骑士</option>
+                <option value="necromancer">死灵法师</option>
+            </select>
+        `;
+        document.body.appendChild(testControls);
+        
+        console.log('POE风格技能树测试页面已加载');
+        console.log('技能节点总数:', skillUI.allSkillPositions.size);
+        console.log('职业位置:', skillUI.classPositions);
+    </script>
+</body>
+</html> 

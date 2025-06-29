@@ -246,8 +246,8 @@ class Combat {
 
         // 普通攻击固定为物理伤害
         result.damageType = 'physical';
-        baseDamage = attacker.physicalAttack || 0;
-        defenseValue = defender.defense || 0;
+            baseDamage = attacker.physicalAttack || 0;
+            defenseValue = defender.defense || 0;
 
         // 计算防御减伤
         const damageReduction = defenseValue / (defenseValue + 100);

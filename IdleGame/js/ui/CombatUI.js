@@ -56,19 +56,19 @@ class CombatUI {
         // 更新每个技能槽
         const skillSlots = document.querySelectorAll('.skill-slot-large');
         skillSlots.forEach((slot, index) => {
-            const icon = slot.querySelector('.skill-icon');
-            if (!icon) return;
-            
+        const icon = slot.querySelector('.skill-icon');
+        if (!icon) return;
+
             if (autoCastSkills[index]) {
                 const skill = autoCastSkills[index];
                 icon.textContent = skill.icon || '⚡';
                 slot.title = skill.name;
                 slot.classList.add('has-skill');
-            } else {
-                icon.textContent = '❓';
+        } else {
+            icon.textContent = '❓';
                 slot.title = '空技能槽';
                 slot.classList.remove('has-skill');
-            }
+        }
         });
     }
 
@@ -178,7 +178,7 @@ class CombatUI {
                 }
             }, true);
         }
-    }
+        }
 
     // 显示角色悬浮提示
     showCharacterTooltip(event, type, enemyId) {
