@@ -1,0 +1,1009 @@
+/* 五行炼丹系统样式文件 */
+
+/* 基础样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px 40px;
+    /* 现代化修仙风格渐变背景 */
+    background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 25%, #16213e 50%, #2d3561 75%, #4a5d7a 100%);
+    min-height: 100vh;
+    color: #f8fafc;
+}
+
+/* 容器布局 */
+.container {
+    max-width: 1800px;
+    margin: 0 auto;
+    /* 高级感容器背景 */
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+    border-radius: 20px;
+    padding: 30px;
+    /* 现代化阴影和边框 */
+    box-shadow:
+        0 25px 50px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(148, 163, 184, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.8fr 1fr 2fr 1fr;
+    /* 恢复6列：规则、目标+模拟、丹方配置、当前属性+炉中材料、日志、结果 */
+    gap: 20px;
+    height: calc(100vh - 200px);
+    max-height: calc(100vh - 200px);
+}
+
+/* 让每一列都有固定高度 */
+.grid>div {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+/* 第4列特殊布局：当前属性值 + 炉中材料 */
+.grid>div:nth-child(4) .card:first-child {
+    flex: 0 0 auto;
+    /* 当前属性值卡片自适应高度 */
+    margin-bottom: 20px;
+}
+
+.grid>div:nth-child(4) .card.scrollable {
+    flex: 1;
+    /* 炉中材料卡片占用剩余空间 */
+    min-height: 200px;
+    max-height: calc(100vh - 500px);
+    /* 限制最大高度，确保底部对齐 */
+}
+
+/* 第2列布局：目标丹药固定高度，模拟控制占用剩余空间 */
+.grid>div:nth-child(2) .card:first-child {
+    flex: 0 0 auto;
+    /* 目标丹药卡片自适应高度 */
+    margin-bottom: 20px;
+}
+
+.grid>div:nth-child(2) .card:last-child {
+    flex: 1;
+    /* 模拟控制卡片占用剩余空间 */
+    min-height: 200px;
+}
+
+/* 第6列布局：炼丹结果占满整列 */
+.grid>div:nth-child(6) .card {
+    flex: 1;
+    /* 炼丹结果卡片占满整列高度 */
+    min-height: 400px;
+}
+
+@media (max-width: 1600px) {
+    .grid {
+        grid-template-columns: 1fr 1.4fr 2fr;
+        /* 中等屏幕时调整比例，丹方配置和日志列保持相应宽度 */
+        height: auto;
+        max-height: none;
+    }
+
+    .grid>div {
+        height: auto;
+    }
+
+    .card.scrollable {
+        max-height: 600px;
+    }
+
+    .log-scroll {
+        max-height: 400px;
+    }
+}
+
+@media (max-width: 1024px) {
+    body {
+        padding: 10px 20px;
+    }
+
+    .container {
+        padding: 20px;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        height: auto;
+        max-height: none;
+    }
+
+    .grid>div {
+        height: auto;
+    }
+
+    .card.scrollable {
+        max-height: 500px;
+    }
+
+    .log-scroll {
+        max-height: 300px;
+    }
+}
+
+/* 卡片样式 */
+.card {
+    /* 现代化卡片背景 */
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.8) 0%, rgba(30, 41, 59, 0.9) 100%);
+    border-radius: 16px;
+    padding: 24px;
+    /* 高级感阴影和边框 */
+    box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(148, 163, 184, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    margin-bottom: 20px;
+    flex-shrink: 0;
+    color: #f1f5f9;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.2),
+        0 0 0 1px rgba(148, 163, 184, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* 特殊处理需要滚动的卡片 */
+.card.scrollable {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: calc(100vh - 280px);
+}
+
+.card.scrollable h3 {
+    flex-shrink: 0;
+    margin-bottom: 16px;
+}
+
+.card h3 {
+    color: #e2e8f0;
+    margin-bottom: 16px;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+/* 标题区域 */
+.title-section {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.title-section h1 {
+    font-size: 36px;
+    font-weight: bold;
+    color: #92400e;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.title-section p {
+    color: #d97706;
+}
+
+/* 表单元素 */
+select,
+input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+input[type="range"] {
+    width: 100%;
+    margin: 8px 0;
+}
+
+/* 按钮样式 */
+.btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 6px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4b5563, #374151);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-gray {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-gray:hover {
+    background: #4b5563;
+}
+
+.btn-large {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* 五行元素颜色 */
+.element-gold {
+    color: #d97706;
+}
+
+.element-wood {
+    color: #059669;
+}
+
+.element-water {
+    color: #0284c7;
+}
+
+.element-fire {
+    color: #dc2626;
+}
+
+.element-earth {
+    color: #d97706;
+}
+
+/* 属性进度条 */
+.attribute-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.progress-bar {
+    width: 128px;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+}
+
+.progress-金 {
+    background: linear-gradient(to right, #fbbf24, #d97706);
+}
+
+.progress-木 {
+    background: linear-gradient(to right, #34d399, #059669);
+}
+
+.progress-水 {
+    background: linear-gradient(to right, #60a5fa, #0284c7);
+}
+
+.progress-火 {
+    background: linear-gradient(to right, #f87171, #dc2626);
+}
+
+.progress-土 {
+    background: linear-gradient(to right, #fbbf24, #d97706);
+}
+
+.progress-value {
+    font-family: monospace;
+    font-size: 12px;
+    width: 48px;
+    text-align: right;
+}
+
+/* 操作队列 */
+.operation-item {
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.6) 0%, rgba(30, 41, 59, 0.8) 100%);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.operation-item:hover {
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.8) 0%, rgba(30, 41, 59, 0.9) 100%);
+    border-color: rgba(148, 163, 184, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.operation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.operation-type {
+    font-weight: 600;
+    color: #e2e8f0;
+    font-size: 14px;
+}
+
+.operation-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.operation-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: center;
+}
+
+/* 4列布局时的网格调整 */
+.operation-fields.four-columns {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 8px;
+}
+
+/* 3列布局时的网格调整 */
+.operation-fields.three-columns {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.operation-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* 操作字段标签优化 */
+.operation-field label {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 500;
+    margin-bottom: 4px;
+    display: block;
+}
+
+/* 操作字段输入框优化 - 减小宽度 */
+.operation-field input,
+.operation-field select {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 6px;
+    padding: 6px 8px;
+    /* 减小padding */
+    color: #f1f5f9;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* 移除数字输入框的spinner箭头 */
+.operation-field input[type="number"]::-webkit-outer-spin-button,
+.operation-field input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.operation-field input[type="number"] {
+    -moz-appearance: textfield;
+    /* Firefox */
+    max-width: 80px;
+    /* 限制数字输入框最大宽度 */
+}
+
+/* 其他数字输入框也移除spinner */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+    /* Firefox */
+}
+
+/* 选择框显示优化 */
+.operation-field select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 8px center;
+    background-repeat: no-repeat;
+    background-size: 16px 12px;
+    padding-right: 28px;
+    position: relative;
+}
+
+/* 选择框收起时的显示效果 - 使用JavaScript控制 */
+.operation-field select.collapsed {
+    color: #f1f5f9;
+}
+
+/* 主页面材料选择器也应用相同效果 */
+#selectedMaterial.collapsed {
+    color: #333;
+}
+
+#selectedMaterial {
+    position: relative;
+}
+
+/* 4列布局时的字段宽度优化 */
+.operation-fields.four-columns {
+    grid-template-columns: 0.8fr 0.6fr 1fr 0.6fr;
+    /* 类型稍小，时间和数量更小，材料正常 */
+    gap: 6px;
+}
+
+/* 3列布局时的字段宽度优化 */
+.operation-fields.three-columns {
+    grid-template-columns: 0.8fr 0.6fr 0.6fr;
+    /* 所有字段都适当缩小 */
+    gap: 8px;
+}
+
+/* 2列布局保持原样 */
+.operation-fields {
+    display: grid;
+    grid-template-columns: 1fr 0.6fr;
+    /* 类型正常，时间缩小 */
+    gap: 10px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+/* 滚动容器 */
+.scroll-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    /* 现代化滚动区域背景 */
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.4) 100%);
+    backdrop-filter: blur(8px);
+    max-height: calc(100vh - 350px);
+    /* 确保所有滚动容器高度一致 */
+}
+
+.scroll-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 4px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #64748b, #475569);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #94a3b8, #64748b);
+}
+
+.log-scroll {
+    flex-grow: 1;
+    overflow-y: auto;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    /* 现代化日志背景 */
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    min-height: 200px;
+    max-height: calc(100vh - 350px);
+    /* 调整最大高度以对齐底部 */
+    color: #e2e8f0;
+    /* 更亮的日志文本颜色 */
+}
+
+.log-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.log-scroll::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 4px;
+}
+
+.log-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #64748b, #475569);
+    border-radius: 4px;
+}
+
+/* 炼丹规则卡片特殊样式 */
+.rules-card {
+    height: calc(100vh - 240px);
+    max-height: calc(100vh - 240px);
+    overflow-y: auto;
+    /* 现代化规则卡片 */
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(67, 56, 202, 0.05) 100%);
+    border: 1px solid rgba(129, 140, 248, 0.2);
+    flex: 1;
+    /* 让规则卡片占满整列高度 */
+}
+
+.rules-card::-webkit-scrollbar {
+    width: 8px;
+}
+
+.rules-card::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 4px;
+}
+
+.rules-card::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    border-radius: 4px;
+}
+
+.rules-card::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+}
+
+/* 材料和配方项目 */
+.material-item,
+.recipe-item {
+    font-size: 14px;
+    padding: 8px;
+    background: #f9fafb;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.recipe-item {
+    background: #faf5ff;
+}
+
+.item-name {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.item-attributes {
+    font-size: 12px;
+}
+
+.item-attributes span {
+    display: inline-block;
+    margin-right: 8px;
+}
+
+/* 日志样式 */
+.log-container {
+    font-family: monospace;
+    font-size: 12px;
+}
+
+/* 日志条目颜色分类 - 增强版 */
+.log-entry {
+    color: #f1f5f9;
+    margin-bottom: 2px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    line-height: 1.4;
+}
+
+.log-entry.material {
+    background: rgba(34, 197, 94, 0.1);
+    border-left: 3px solid #22c55e;
+}
+
+.log-entry.fire {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 3px solid #ef4444;
+}
+
+.log-entry.alchemy {
+    background: rgba(168, 85, 247, 0.1);
+    border-left: 3px solid #a855f7;
+}
+
+.log-entry.attribute {
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid #3b82f6;
+}
+
+.log-entry.decay {
+    background: rgba(156, 163, 175, 0.1);
+    border-left: 3px solid #9ca3af;
+}
+
+.log-entry.warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-left: 3px solid #f59e0b;
+}
+
+.log-entry.error {
+    background: rgba(239, 68, 68, 0.2);
+    border-left: 3px solid #dc2626;
+}
+
+.log-entry.success {
+    background: rgba(16, 185, 129, 0.1);
+    border-left: 3px solid #10b981;
+}
+
+.log-entry.source {
+    background: rgba(34, 197, 94, 0.05);
+    border-left: 3px solid #059669;
+}
+
+/* 材料来源样式 */
+.material-source {
+    color: #86efac !important;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* 五行元素颜色 - 用于日志中的元素显示 */
+.element-金,
+.element-jin {
+    color: #fbbf24 !important;
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(251, 191, 36, 0.5);
+}
+
+.element-木,
+.element-mu {
+    color: #22c55e !important;
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
+}
+
+.element-水,
+.element-shui {
+    color: #3b82f6 !important;
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(59, 130, 246, 0.5);
+}
+
+.element-火,
+.element-huo {
+    color: #ef4444 !important;
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+}
+
+.element-土,
+.element-tu {
+    color: #a3a3a3 !important;
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(163, 163, 163, 0.5);
+}
+
+/* 日志中的特殊效果样式 */
+.generate-bonus {
+    color: #4ade80 !important;
+    font-weight: bold;
+}
+
+.destroy-penalty {
+    color: #f87171 !important;
+    font-weight: bold;
+}
+
+.final-gain {
+    color: #60a5fa !important;
+    font-weight: bold;
+}
+
+.fire-info {
+    color: #fbbf24 !important;
+    font-size: 0.9em;
+}
+
+.decay-rate {
+    color: #f87171 !important;
+    font-weight: bold;
+}
+
+/* 五行相生相克说明 */
+.wuxing-info {
+    font-size: 14px;
+}
+
+.wuxing-info div {
+    margin-bottom: 4px;
+}
+
+.generate-text {
+    color: #059669;
+}
+
+.destroy-text {
+    color: #dc2626;
+}
+
+.wuxing-note {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 8px;
+    line-height: 1.4;
+}
+
+/* 炉中材料项目样式优化 */
+.material-item {
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.6) 0%, rgba(30, 41, 59, 0.8) 100%);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    /* 减少垂直padding以节省空间 */
+    margin-bottom: 6px;
+    /* 减少间距 */
+    color: #f1f5f9;
+    font-size: 12px;
+    /* 减小字体 */
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    /* 防止压缩 */
+}
+
+.material-item:hover {
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.8) 0%, rgba(30, 41, 59, 0.9) 100%);
+    border-color: rgba(148, 163, 184, 0.3);
+}
+
+
+
+/* 操作按钮区域样式 */
+.operation-buttons {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.operation-buttons .btn {
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.operation-buttons .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.material-name {
+    font-weight: 600;
+    color: #e2e8f0;
+    /* 更亮的材料名称 */
+    margin-bottom: 4px;
+}
+
+.material-attributes {
+    font-size: 11px;
+    color: #cbd5e1;
+    /* 属性文本颜色 */
+    line-height: 1.3;
+}
+
+/* 火力控制 */
+.fire-control {
+    margin-bottom: 8px;
+}
+
+.fire-label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.fire-display {
+    font-weight: 600;
+}
+
+/* 时间显示 */
+.time-display {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* Flex布局辅助类 */
+.flex {
+    display: flex;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.gap-2 {
+    gap: 8px;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.mb-2 {
+    margin-bottom: 8px;
+}
+
+.mb-3 {
+    margin-bottom: 12px;
+}
+
+.text-sm {
+    font-size: 14px;
+}
+
+.text-xs {
+    font-size: 12px;
+}
+
+.font-medium {
+    font-weight: 500;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+/* 禁用按钮样式 */
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+    background: inherit;
+}
+
+/* 目标状态样式 */
+#targetStatusText {
+    font-weight: 600;
+}
+
+/* 现代化修仙风格颜色定义 - 提升对比度 */
+.formula-fire {
+    color: #fca5a5;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(252, 165, 165, 0.3);
+}
+
+.formula-wuxing {
+    color: #67e8f9;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(103, 232, 249, 0.3);
+}
+
+.formula-decay {
+    color: #93c5fd;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(147, 197, 253, 0.3);
+}
+
+.formula-quality {
+    color: #86efac;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(134, 239, 172, 0.3);
+}
+
+.formula-tips {
+    color: #fde047;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(253, 224, 71, 0.3);
+}
+
+/* 空状态样式优化 */
+.empty-state {
+    text-align: center;
+    color: #94a3b8;
+    font-style: italic;
+    padding: 20px;
+    font-size: 13px;
+}
+
+/* 日志内容样式类 */
+.material-name {
+    color: #86efac !important;
+    font-weight: bold;
+}
+
+.amount {
+    color: #60a5fa !important;
+    font-weight: bold;
+}
+
+.fire-level {
+    color: #fbbf24 !important;
+    font-weight: bold;
+    background: rgba(251, 191, 36, 0.2);
+    padding: 1px 4px;
+    border-radius: 2px;
+}
+
+.exhausted {
+    color: #f87171 !important;
+    font-weight: bold;
+}
+
+.remaining {
+    color: #4ade80 !important;
+    font-weight: bold;
+}

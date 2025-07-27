@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五行炼丹系统</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- 标题区域 -->
+        <div class="title-section">
+            <h1>
+                🧪 五行炼丹系统
+            </h1>
+            <p>基于五行相生相克的炼丹模拟器</p>
+        </div>
+
+        <div class="grid">
+            <!-- 第一列：炼丹规则 -->
+            <div>
+                <div class="card rules-card">
+                    <h3>📚 炼丹规则</h3>
+                    <div style="font-size: 12px; line-height: 1.4;">
+                        <div class="mb-2">
+                            <strong class="formula-fire">🔥 火力机制：</strong><br />
+                            <div
+                                style="background: rgba(239, 68, 68, 0.1); padding: 6px; border-radius: 4px; margin: 4px 0; border-left: 3px solid #ef4444;">
+                                <strong style="color: #fca5a5;">💡 简单理解：</strong>火力就像煮菜的火候，低火慢炖省材料但费时间，大火快炒省时间但费材料。
+                            </div>
+                            • <span class="formula-fire">火力1-3：高效率(100%-96%)</span>，适合精细炼制<br />
+                            • <span class="formula-fire">火力4-7：平衡效率(93%-84%)</span>，常规炼制<br />
+                            • <span class="formula-fire">火力8-10：快速度(80%-72%)</span>，时间优先<br />
+                            <small style="color: #ff9999;">炼制速度 = 火力 × 0.08 + 0.02</small>
+                        </div>
+
+                        <div class="mb-2">
+                            <strong class="formula-wuxing">☯️ 五行相生相克：</strong><br />
+                            <div
+                                style="background: rgba(103, 232, 249, 0.1); padding: 6px; border-radius: 4px; margin: 4px 0; border-left: 3px solid #67e8f9;">
+                                <strong style="color: #67e8f9;">💡
+                                    简单理解：</strong>就像食材搭配，有些相互促进（相生），有些相互冲突（相克）。炉中已有的属性会影响新加入的属性。
+                            </div>
+                            <span class="generate-text" style="color: #4ecdc4;">相生：金→水→木→火→土→金</span><br />
+                            <span class="destroy-text" style="color: #ff6b6b;">相克：金→木→土→水→火→金</span><br />
+                            • <span class="formula-wuxing">相生：新增属性获得10%加成</span><br />
+                            • <span class="formula-wuxing">相克：新增属性减少10%</span><br />
+                            <small style="color: #99e6e6;">注意：加成基于新增属性值，避免无限累积</small>
+                        </div>
+
+                        <div class="mb-2">
+                            <strong class="formula-decay">💨 属性流失：</strong><br />
+                            <div
+                                style="background: rgba(147, 197, 253, 0.1); padding: 6px; border-radius: 4px; margin: 4px 0; border-left: 3px solid #93c5fd;">
+                                <strong style="color: #93c5fd;">💡 简单理解：</strong>炼制过程中药力会自然挥发，属性越多挥发越快，就像开水会慢慢蒸发一样。
+                            </div>
+                            • <span class="formula-decay">流失率 = 总属性/(总属性+10000)</span><br />
+                            • 所有属性按相同比例流失<br />
+                            • 总属性越高，流失越快<br />
+                            <small style="color: #99ccff;">流失量精确到0.1，避免过度消耗</small>
+                        </div>
+
+                        <div class="mb-2">
+                            <strong class="formula-quality">🏆 品质计算：</strong><br />
+                            <div
+                                style="background: rgba(134, 239, 172, 0.1); padding: 6px; border-radius: 4px; margin: 4px 0; border-left: 3px solid #86efac;">
+                                <strong style="color: #86efac;">💡
+                                    简单理解：</strong>就像做菜评分，配料齐全得基础分，多余配料扣分，不需要的配料也扣分。最终得分决定品质等级。
+                            </div>
+                            • <span class="formula-quality">基础品质 = 属性匹配度(0-100%)</span><br />
+                            • <span style="color: #ff6b6b;">杂质惩罚 = (杂质总量 ÷ 需求总量) × 50%</span><br />
+                            • <span style="color: #ffa726;">过量惩罚 = Σ[(当前-需求)÷max(需求,100) × 50%]</span><br />
+                            • <span class="formula-quality">最终品质 = 基础品质 - 杂质惩罚 - 过量惩罚</span><br />
+                            • <span style="color: #ff6b6b;">废丹(&lt;30%)</span> &lt; <span
+                                style="color: #ffa726;">下品(30-60%)</span> &lt; <span
+                                style="color: #66bb6a;">中品(60-85%)</span> &lt; <span
+                                style="color: #ab47bc;">上品(85%+)</span>
+                        </div>
+
+                        <div class="mb-2">
+                            <strong class="formula-tips">⚗️ 炼制技巧：</strong><br />
+                            <div
+                                style="background: rgba(253, 224, 71, 0.1); padding: 6px; border-radius: 4px; margin: 4px 0; border-left: 3px solid #fde047;">
+                                <strong style="color: #fde047;">💡 简单理解：</strong>选择丹方→一键应用→开始模拟，就像跟着菜谱做菜一样简单！
+                            </div>
+                            • <span class="formula-tips">必须先设定目标丹药才能开始</span><br />
+                            • 低火力节约材料，高火力节约时间<br />
+                            • 利用相生关系提升属性产出<br />
+                            • 避免相克关系降低效率<br />
+                            • <span class="formula-tips">精确控制属性避免杂质和过量</span><br />
+                            • <span style="color: #ffcc99;">大体量丹药现在更容易获得高品质</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第二列：操作面板 -->
+            <div>
+                <!-- 目标丹药 -->
+                <div class="card">
+                    <h3>🎯 目标丹药</h3>
+                    <select id="selectedRecipe">
+                        <!-- 动态填充 -->
+                    </select>
+                    <div class="text-sm mb-3">
+                        <p class="font-medium mb-2">目标属性需求:</p>
+                        <div id="targetAttributes"></div>
+                    </div>
+                    <div id="targetStatus" class="text-sm mb-2">
+                        <p class="font-medium">状态: <span id="targetStatusText">未设定目标</span></p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="setTargetBtn" class="btn btn-secondary flex-1">
+                            🎯 设定目标
+                        </button>
+                        <button id="craftBtn" class="btn btn-primary" disabled>
+                            ✨ 炼制
+                        </button>
+                    </div>
+                </div>
+
+
+
+                <!-- 模拟控制 -->
+                <div class="card">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3>⚗️ 模拟控制</h3>
+                        <span class="time-display">时间: <span id="currentTime">0</span>s / <span
+                                id="endTimeDisplay">30</span>s</span>
+                    </div>
+
+                    <!-- 结束时间设置 -->
+                    <div class="flex gap-2 mb-2">
+                        <input id="endTime" type="number" value="30" class="flex-1" min="1" placeholder="模拟总时长(秒)">
+                        <button id="setEndTimeBtn" class="btn btn-gray">
+                            设置
+                        </button>
+                    </div>
+
+                    <!-- 模拟速度控制 -->
+                    <div class="mb-3">
+                        <label class="fire-label">模拟速度: <span id="speedDisplay" class="fire-display">1x</span></label>
+                        <input id="simulationSpeed" type="range" min="0.5" max="10" step="0.5" value="1">
+                    </div>
+
+                    <!-- 控制按钮 -->
+                    <button id="toggleRunning" class="btn btn-primary btn-large w-full mb-2">
+                        ▶️ 开始模拟
+                    </button>
+                    <button onclick="resetSimulation()" class="btn btn-gray btn-large w-full">
+                        🔄 重置模拟
+                    </button>
+                </div>
+            </div>
+
+            <!-- 第三列：丹方配置 -->
+            <div>
+                <div class="card scrollable">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3>📋 丹方配置</h3>
+                        <button id="clearRecipeBtn" class="btn btn-gray" style="padding: 4px 8px; font-size: 12px;">
+                            🗑️ 清空
+                        </button>
+                    </div>
+
+                    <!-- 丹方选择 -->
+                    <div class="mb-3" style="flex-shrink: 0;">
+                        <label class="fire-label">选择丹方:</label>
+                        <select id="recipeFormulaSelect" class="mb-2">
+                            <option value="">-- 选择预设丹方 --</option>
+                            <!-- 动态填充 -->
+                        </select>
+                        <button id="applyRecipeBtn" class="btn btn-primary w-full mb-2">
+                            ✨ 一键应用丹方
+                        </button>
+                    </div>
+
+                    <!-- 丹方描述 -->
+                    <div id="recipeDescription" class="text-xs mb-3"
+                        style="color: #6b7280; line-height: 1.4; flex-shrink: 0;">
+                        选择丹方查看详细说明
+                    </div>
+
+                    <!-- 材料属性预览 -->
+                    <div class="mb-3" style="flex-shrink: 0;">
+                        <p class="font-medium text-sm mb-2">📦 材料属性预览:</p>
+                        <div id="materialPreview" class="small-scroll"
+                            style="background: #f9fafb; border-radius: 4px; padding: 8px; max-height: 120px; overflow-y: auto;">
+                            <div class="empty-state text-xs">选择丹方查看材料属性</div>
+                        </div>
+                    </div>
+
+                    <!-- 操作列表 -->
+                    <div class="mb-2" style="flex-shrink: 0;">
+                        <p class="font-medium text-sm">⚡ 操作列表:</p>
+                    </div>
+                    <div id="recipeQueue" class="scroll-container">
+                        <div class="empty-state">未设置丹方</div>
+                    </div>
+
+                    <!-- 添加操作按钮区域 -->
+                    <div class="operation-buttons"
+                        style="flex-shrink: 0; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(148, 163, 184, 0.2);">
+                        <div class="flex gap-2 mb-2">
+                            <button id="addMaterialOperationBtn" class="btn btn-primary flex-1"
+                                style="font-size: 12px; padding: 6px 8px;">
+                                🌿 添加材料
+                            </button>
+                            <button id="addFireOperationBtn" class="btn btn-danger flex-1"
+                                style="font-size: 12px; padding: 6px 8px;">
+                                🔥 调节火力
+                            </button>
+                        </div>
+                        <button id="addEndOperationBtn" class="btn btn-gray w-full"
+                            style="font-size: 12px; padding: 6px 8px;">
+                            ⚗️ 结束炼丹
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第四列：当前属性值 -->
+            <div>
+                <div class="card">
+                    <h3>📊 当前属性值</h3>
+                    <div id="currentAttributes">
+                        <!-- 动态生成属性条 -->
+                    </div>
+                </div>
+
+                <div class="card scrollable">
+                    <h3>🧪 炉中材料</h3>
+                    <div id="materialQueue" class="scroll-container">
+                        <div class="empty-state">炉中无材料</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第五列：炼丹日志 -->
+            <div>
+                <div class="card scrollable">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0;">
+                        <h3>📜 炼丹日志</h3>
+                        <button onclick="clearLogs()" class="btn btn-gray" style="padding: 4px 8px; font-size: 12px;">
+                            🗑️ 清空
+                        </button>
+                    </div>
+                    <div id="logs" class="log-scroll">
+                        <!-- 动态生成日志 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第六列：炼丹结果与品质分析 -->
+            <div>
+                <div class="card">
+                    <h3>🏆 炼丹结果与品质分析</h3>
+                    <div id="combinedResult">
+                        <div class="empty-state">设定目标后显示分析结果</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入配置文件和核心JavaScript文件 -->
+    <script src="config.js"></script>
+    <script src="alchemy-system.js"></script>
+</body>
+
+</html>
